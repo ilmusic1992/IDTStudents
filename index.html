@@ -300,6 +300,13 @@ body {
 }
 .tx-type-btn.active-income { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
 .tx-type-btn.active-expense { background:var(--red-light); border-color:var(--red); color:var(--red); }
+.ycat-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 0; border-bottom:1px solid var(--gray-100); font-size:13px;
+}
+.ycat-row:last-child { border-bottom:none; }
+.ycat-name { font-weight:600; }
+.ycat-val { font-weight:800; }
 .t-val.green { color:var(--green); }
 .t-val.red { color:var(--red); }
 
@@ -585,7 +592,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       </div>
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">בחינות שנקנו</div>
+          <div class="stat-label">מבחנים שנקנו</div>
           <div class="stat-value" id="t-tests">0</div>
         </div>
         <div class="stat-card">
@@ -602,9 +609,27 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       </div>
       <div class="section-title">נתונים נוספים</div>
       <div class="card">
-        <div class="input-row"><label>בחינות שנקנו</label><input type="number" id="i-tests" placeholder="0" oninput="saveTradingDebounced()"></div>
+        <div class="input-row"><label>מבחנים שנקנו</label><input type="number" id="i-tests" placeholder="0" oninput="saveTradingDebounced()"></div>
         <div class="input-row"><label>PA שעברו</label><input type="number" id="i-pa" placeholder="0" oninput="saveTradingDebounced()"></div>
         <div class="input-row"><label>הערות</label><input type="text" id="i-notes" placeholder="הערות..." oninput="saveTradingDebounced()"></div>
+      </div>
+      <div class="section-title">סיכום שנתי <span id="y-label" style="color:var(--gray-500);font-weight:500"></span></div>
+      <div class="trading-grid">
+        <div class="trading-card">
+          <div class="t-label">הכנסות</div>
+          <div class="t-val green" id="y-income">$0</div>
+        </div>
+        <div class="trading-card">
+          <div class="t-label">הוצאות</div>
+          <div class="t-val red" id="y-expenses">$0</div>
+        </div>
+        <div class="trading-card">
+          <div class="t-label">רווח נקי</div>
+          <div class="t-val" id="y-net">$0</div>
+        </div>
+      </div>
+      <div class="card" id="y-cats" style="padding:6px 14px">
+        <div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים השנה</div>
       </div>
     </div>
   </div>
@@ -847,13 +872,22 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <button class="tx-type-btn" id="tx-btn-income" onclick="setTxType('income')">+ הכנסה</button>
       <button class="tx-type-btn" id="tx-btn-expense" onclick="setTxType('expense')">− הוצאה</button>
     </div>
+    <div class="input-group" id="tx-cat-group" style="display:none">
+      <label class="input-label">קטגוריה</label>
+      <select id="tx-cat" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);">
+        <option value="מבחן">מבחן</option>
+        <option value="תוכנות">תוכנות</option>
+        <option value="כלי עזר">כלי עזר</option>
+        <option value="אחר">אחר</option>
+      </select>
+    </div>
     <div class="input-group">
       <label class="input-label">סכום ($)</label>
       <input class="input-field" type="number" id="tx-amount" placeholder="0" min="0" step="0.01" style="direction:ltr">
     </div>
     <div class="input-group">
       <label class="input-label">תיאור</label>
-      <input class="input-field" type="text" id="tx-desc" placeholder="בחינה, משיכה, מנוי...">
+      <input class="input-field" type="text" id="tx-desc" placeholder="משיכה, תיאור חופשי...">
     </div>
     <div class="input-group">
       <label class="input-label">תאריך</label>
@@ -1138,6 +1172,10 @@ function loadTrading() {
   if (!uid) {
     document.getElementById('tx-list').innerHTML = '<div class="tx-empty">בחר סטודנט כדי לראות נתונים</div>';
     updateTradingUI(0, 0);
+    document.getElementById('y-income').textContent = '$0';
+    document.getElementById('y-expenses').textContent = '$0';
+    document.getElementById('y-net').textContent = '+$0';
+    document.getElementById('y-cats').innerHTML = '<div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים השנה</div>';
     return;
   }
   db.collection('trading').doc(uid).collection('monthly').doc(getTradingKey()).get().then(function(doc) {
@@ -1149,6 +1187,38 @@ function loadTrading() {
     document.getElementById('t-pa').textContent = d.pa || 0;
   });
   loadTransactions(uid);
+  loadYearly(uid);
+}
+
+function loadYearly(uid) {
+  var y = currentMonth.getFullYear();
+  document.getElementById('y-label').textContent = '· ' + y;
+  db.collection('trading').doc(uid).collection('tx')
+    .where('month', '>=', y + '-01').where('month', '<=', y + '-12').get().then(function(snap) {
+    var inc = 0, exp = 0, cats = {};
+    snap.forEach(function(doc) {
+      var t = doc.data();
+      var a = parseFloat(t.amount) || 0;
+      if (t.type === 'income') { inc += a; }
+      else {
+        exp += a;
+        var c = t.category || 'אחר';
+        cats[c] = (cats[c] || 0) + a;
+      }
+    });
+    var net = inc - exp;
+    document.getElementById('y-income').textContent = '$' + inc.toLocaleString();
+    document.getElementById('y-expenses').textContent = '$' + exp.toLocaleString();
+    document.getElementById('y-net').textContent = (net >= 0 ? '+' : '−') + '$' + Math.abs(net).toLocaleString();
+    document.getElementById('y-net').className = 't-val ' + (net >= 0 ? 'green' : 'red');
+    var box = document.getElementById('y-cats');
+    var keys = Object.keys(cats).sort(function(a, b) { return cats[b] - cats[a]; });
+    var rows = keys.map(function(c) {
+      return '<div class="ycat-row"><span class="ycat-name">' + escapeHtmlTx(c) + '</span><span class="ycat-val" style="color:var(--red)">−$' + cats[c].toLocaleString() + '</span></div>';
+    });
+    if (inc > 0) rows.unshift('<div class="ycat-row"><span class="ycat-name">הכנסות</span><span class="ycat-val" style="color:var(--green)">+$' + inc.toLocaleString() + '</span></div>');
+    box.innerHTML = rows.length ? rows.join('') : '<div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים השנה</div>';
+  });
 }
 
 function loadTransactions(uid) {
@@ -1171,8 +1241,8 @@ function loadTransactions(uid) {
         return '<div class="tx-row">' +
           '<div class="tx-icon ' + t.type + '">' + (isInc ? '+' : '−') + '</div>' +
           '<div class="tx-info">' +
-            '<div class="tx-desc">' + escapeHtmlTx(t.desc || (isInc ? 'הכנסה' : 'הוצאה')) + '</div>' +
-            '<div class="tx-date">' + (t.date || '') + '</div>' +
+            '<div class="tx-desc">' + escapeHtmlTx(t.desc || t.category || (isInc ? 'הכנסה' : 'הוצאה')) + '</div>' +
+            '<div class="tx-date">' + (t.date || '') + (t.category ? ' · ' + escapeHtmlTx(t.category) : '') + '</div>' +
           '</div>' +
           '<div class="tx-amount ' + t.type + '">' + (isInc ? '+' : '−') + '$' + (parseFloat(t.amount) || 0).toLocaleString() + '</div>' +
           '<button class="tx-del" onclick="deleteTx(\'' + t.id + '\')">🗑</button>' +
@@ -1202,6 +1272,7 @@ function setTxType(t) {
   txType = t;
   document.getElementById('tx-btn-income').className = 'tx-type-btn' + (t === 'income' ? ' active-income' : '');
   document.getElementById('tx-btn-expense').className = 'tx-type-btn' + (t === 'expense' ? ' active-expense' : '');
+  document.getElementById('tx-cat-group').style.display = (t === 'expense') ? 'block' : 'none';
 }
 
 function openTxModal() {
@@ -1225,6 +1296,7 @@ function saveTx() {
   db.collection('trading').doc(uid).collection('tx').add({
     type: txType,
     amount: amount,
+    category: txType === 'expense' ? document.getElementById('tx-cat').value : '',
     desc: document.getElementById('tx-desc').value || '',
     date: date,
     month: date.slice(0, 7),
@@ -1232,6 +1304,7 @@ function saveTx() {
   }).then(function() {
     closeTxModal();
     loadTransactions(uid);
+    loadYearly(uid);
   }).catch(function(e) { alert('שגיאה בשמירה: ' + e.message); });
 }
 
@@ -1241,6 +1314,7 @@ function deleteTx(id) {
   if (!uid) return;
   db.collection('trading').doc(uid).collection('tx').doc(id).delete().then(function() {
     loadTransactions(uid);
+    loadYearly(uid);
   });
 }
 
