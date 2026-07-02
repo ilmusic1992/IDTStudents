@@ -193,6 +193,33 @@ body {
 .lesson-topic { font-size:14px; font-weight:700; color:var(--black); margin-bottom:2px; }
 .lesson-meta { font-size:11px; color:var(--gray-500); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lesson-date { font-size:11px; color:var(--gray-500); flex-shrink:0; }
+.lesson-card { flex-wrap:wrap; cursor:pointer; }
+.lesson-summary-short { font-size:12px; color:var(--gray-700); margin-top:3px; }
+.lesson-body { display:none; width:100%; padding-top:10px; margin-top:10px; border-top:1px solid var(--gray-100); }
+.lesson-card.open .lesson-body { display:block; }
+.lesson-chevron { font-size:12px; color:var(--gray-300); flex-shrink:0; transition:transform .2s; margin-top:2px; }
+.lesson-card.open .lesson-chevron { transform:rotate(180deg); }
+.lb-section { margin-bottom:10px; }
+.lb-title { font-size:11px; font-weight:800; color:var(--gray-500); margin-bottom:3px; }
+.lb-text { font-size:13px; color:var(--gray-900); white-space:pre-wrap; line-height:1.55; }
+.lb-hw { background:var(--green-pale); border:1px solid var(--green-light); border-radius:8px; padding:9px 11px; }
+.lb-link {
+  display:inline-block; background:var(--gray-100); border-radius:8px;
+  padding:7px 12px; font-size:12px; font-weight:700; color:var(--green-dark);
+  text-decoration:none; margin-top:2px;
+}
+.lb-actions { display:flex; gap:8px; margin-top:4px; }
+.lb-btn {
+  border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700;
+  font-family:'Heebo',sans-serif; cursor:pointer; background:var(--gray-100); color:var(--gray-700);
+}
+.lb-btn.danger { color:var(--red); }
+.booking-btn {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--black); color:var(--white); border-radius:var(--radius-sm);
+  padding:12px; font-size:14px; font-weight:700; text-decoration:none;
+  margin-bottom:12px; box-shadow:var(--shadow);
+}
 
 /* ===== FAB ===== */
 .fab {
@@ -560,6 +587,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
             <div class="stat-value" id="stat-last-lesson" style="font-size:14px;padding-top:4px">—</div>
           </div>
         </div>
+        <a class="booking-btn" id="booking-btn-home" target="_blank" style="display:none;margin-top:10px">📅 קביעת שיעור (דרך אתר הבוילר)</a>
         <div class="card" id="my-progress-card" style="display:none;margin-top:10px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div style="font-weight:700;font-size:14px">ההתקדמות שלי</div>
@@ -577,6 +605,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
   <!-- LESSONS -->
   <div class="page" id="page-lessons">
     <div class="page-content" style="padding-top:12px">
+      <a class="booking-btn" id="booking-btn-lessons" target="_blank" style="display:none">📅 קביעת שיעור (דרך אתר הבוילר)</a>
       <div id="lessons-admin-filter" style="display:none; margin-bottom:10px">
         <select id="filter-student" onchange="loadLessons()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;">
           <option value="">כל הסטודנטים</option>
@@ -862,7 +891,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
 <div class="modal-overlay" id="lesson-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">הוספת שיעור</div>
+      <div class="modal-title" id="lesson-modal-title">סיכום שיעור</div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="input-group">
@@ -884,10 +913,22 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <input class="input-field" type="number" id="m-duration" placeholder="60">
     </div>
     <div class="input-group">
-      <label class="input-label">הערות</label>
-      <input class="input-field" type="text" id="m-notes" placeholder="הערות אופציונליות...">
+      <label class="input-label">סיכום קצר (שורה אחת)</label>
+      <input class="input-field" type="text" id="m-notes" placeholder="מה עשינו בשיעור בקצרה...">
     </div>
-    <button class="btn-primary" onclick="saveLesson()">שמור שיעור</button>
+    <div class="input-group">
+      <label class="input-label">סיכום מלא</label>
+      <textarea class="input-field" id="m-summary" rows="4" placeholder="פירוט מלא של החומר, דגשים, מה למדנו..." style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">שיעורי בית</label>
+      <textarea class="input-field" id="m-homework" rows="2" placeholder="משימות עד השיעור הבא..." style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">קישור לחומר (תמונה, הקלטה, מצגת)</label>
+      <input class="input-field" type="url" id="m-link" placeholder="https://..." style="direction:ltr">
+    </div>
+    <button class="btn-primary" onclick="saveLesson()">שמור סיכום</button>
   </div>
 </div>
 
@@ -1014,6 +1055,9 @@ var FB_CONFIG = {
 // YOUR Firebase UID (the admin) — replace after first login
 var ADMIN_UID = "HI21gFZ70fN1Pa77QetxCDvfBdo2";
 
+// קישור לקביעת שיעור (אתר הבוילר) — עדכן כאן
+var BOOKING_URL = "";
+
 // ============================================================
 var auth, db;
 window.addEventListener('load', function() {
@@ -1103,6 +1147,13 @@ function initApp() {
   } else {
     document.getElementById('student-home').style.display = 'block';
     loadStudentHome();
+  }
+
+  if (BOOKING_URL) {
+    ['booking-btn-lessons','booking-btn-home'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.href = BOOKING_URL; el.style.display = 'flex'; }
+    });
   }
 
   updateMonthLabel();
@@ -1379,19 +1430,62 @@ function loadLessons() {
 }
 
 function lessonCard(l, num) {
-  return '<div class="lesson-card">' +
+  var hasBody = l.summaryFull || l.homework || l.link || isAdmin;
+  var body = '';
+  if (hasBody) {
+    body = '<div class="lesson-body">';
+    if (l.summaryFull) body += '<div class="lb-section"><div class="lb-title">📖 סיכום מלא</div><div class="lb-text">' + escapeHtmlTx(l.summaryFull) + '</div></div>';
+    if (l.homework) body += '<div class="lb-section lb-hw"><div class="lb-title">📝 שיעורי בית</div><div class="lb-text">' + escapeHtmlTx(l.homework) + '</div></div>';
+    if (l.link) body += '<div class="lb-section"><a class="lb-link" href="' + encodeURI(l.link) + '" target="_blank" onclick="event.stopPropagation()">🔗 חומר מצורף</a></div>';
+    if (isAdmin && l.id) {
+      body += '<div class="lb-actions">' +
+        '<button class="lb-btn" onclick="event.stopPropagation();openEditLesson(\'' + l.id + '\')">✏️ עריכה</button>' +
+        '<button class="lb-btn danger" onclick="event.stopPropagation();deleteLesson(\'' + l.id + '\')">🗑 מחיקה</button>' +
+      '</div>';
+    }
+    body += '</div>';
+  }
+  return '<div class="lesson-card" onclick="this.classList.toggle(\'open\')">' +
     '<div class="lesson-num">' + num + '</div>' +
     '<div class="lesson-info">' +
-      '<div class="lesson-topic">' + (l.topic || 'שיעור') + '</div>' +
-      '<div class="lesson-meta">' + (l.studentName || '') + (l.duration ? ' · ' + l.duration + ' דק\'' : '') + '</div>' +
+      '<div class="lesson-topic">' + escapeHtmlTx(l.topic || 'שיעור') + '</div>' +
+      '<div class="lesson-meta">' + escapeHtmlTx((l.studentName || '')) + (l.duration ? ' · ' + l.duration + ' דק\'' : '') + '</div>' +
+      (l.notes ? '<div class="lesson-summary-short">' + escapeHtmlTx(l.notes) + '</div>' : '') +
     '</div>' +
     '<div class="lesson-date">' + (l.date || '') + '</div>' +
+    (hasBody ? '<div class="lesson-chevron">▼</div>' : '') +
+    body +
   '</div>';
 }
 
+var editingLessonId = null;
 function openModal() {
+  editingLessonId = null;
+  document.getElementById('lesson-modal-title').textContent = 'סיכום שיעור חדש';
   document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
+  ['m-topic','m-duration','m-notes','m-summary','m-homework','m-link'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('lesson-modal').classList.add('open');
+}
+function openEditLesson(id) {
+  db.collection('lessons').doc(id).get().then(function(doc) {
+    if (!doc.exists) return;
+    var l = doc.data();
+    editingLessonId = id;
+    document.getElementById('lesson-modal-title').textContent = 'עריכת סיכום שיעור';
+    document.getElementById('m-student').value = l.studentId || '';
+    document.getElementById('m-date').value = l.date || '';
+    document.getElementById('m-topic').value = l.topic || '';
+    document.getElementById('m-duration').value = l.duration || '';
+    document.getElementById('m-notes').value = l.notes || '';
+    document.getElementById('m-summary').value = l.summaryFull || '';
+    document.getElementById('m-homework').value = l.homework || '';
+    document.getElementById('m-link').value = l.link || '';
+    document.getElementById('lesson-modal').classList.add('open');
+  });
+}
+function deleteLesson(id) {
+  if (!confirm('למחוק את השיעור? זה ישפיע גם על ספירת השיעורים')) return;
+  db.collection('lessons').doc(id).delete();
 }
 function closeModal() { document.getElementById('lesson-modal').classList.remove('open'); }
 
@@ -1401,19 +1495,25 @@ function saveLesson() {
   var topic = document.getElementById('m-topic').value;
   if (!sid || !date || !topic) { alert('נא למלא סטודנט, תאריך ונושא'); return; }
   var student = allStudents.find(function(s) { return s.id === sid; });
-  db.collection('lessons').add({
+  var data = {
     studentId: sid,
     studentName: student ? (student.name || student.email) : '',
     date: date,
     topic: topic,
     duration: parseInt(document.getElementById('m-duration').value) || 0,
     notes: document.getElementById('m-notes').value || '',
-    mentorId: currentUser.uid,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function() {
+    summaryFull: document.getElementById('m-summary').value || '',
+    homework: document.getElementById('m-homework').value || '',
+    link: document.getElementById('m-link').value.trim() || '',
+    mentorId: currentUser.uid
+  };
+  var p = editingLessonId
+    ? db.collection('lessons').doc(editingLessonId).set(data, {merge:true})
+    : db.collection('lessons').add(Object.assign({createdAt: firebase.firestore.FieldValue.serverTimestamp()}, data));
+  p.then(function() {
     closeModal();
-    ['m-topic','m-duration','m-notes'].forEach(function(id) { document.getElementById(id).value = ''; });
-  });
+    editingLessonId = null;
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
 }
 
 // ============================================================
