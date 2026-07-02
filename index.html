@@ -917,9 +917,19 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         </select>
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="input-group">
+        <label class="input-label">כמה שיעורים בחבילה</label>
+        <input class="input-field" type="number" id="e-total" placeholder="0" style="direction:ltr">
+      </div>
+      <div class="input-group">
+        <label class="input-label">נוצלו לפני המערכת</label>
+        <input class="input-field" type="number" id="e-offset" placeholder="0" style="direction:ltr">
+      </div>
+    </div>
     <div class="input-group">
-      <label class="input-label">כמה שיעורים בחבילה</label>
-      <input class="input-field" type="number" id="e-total" placeholder="0" style="direction:ltr">
+      <label class="input-label">תוקף החבילה (תאריך תפוגה)</label>
+      <input class="input-field" type="date" id="e-expiry" style="direction:ltr">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="input-group">
@@ -1126,6 +1136,33 @@ function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
 
+function usedLessons(s, st) {
+  return st.count + (parseInt(s.lessonsOffset) || 0);
+}
+
+function daysUntil(dateStr) {
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+// קצב טוב = שיעור בשבוע: האם השיעורים שנשארו נכנסים בשבועות שנשארו
+function paceStatus(s, st) {
+  var total = parseInt(s.totalLessons) || 0;
+  if (!total) return null;
+  var used = usedLessons(s, st);
+  var remaining = total - used;
+  if (remaining <= 0) return {code:'done'};
+  if (s.expiry) {
+    var d = daysUntil(s.expiry);
+    if (d < 0) return {code:'expired', remaining:remaining};
+    var weeksLeft = d / 7;
+    if (remaining > weeksLeft) return {code:'behind', remaining:remaining, days:d};
+    if (d <= 14) return {code:'expiring', remaining:remaining, days:d};
+    return {code:'ok', remaining:remaining, days:d};
+  }
+  if (st.last && daysSince(st.last) > 14) return {code:'stale', remaining:remaining};
+  return {code:'ok', remaining:remaining};
+}
+
 function loadStudents() {
   db.collection('users').where('role','==','student').onSnapshot(function(snap) {
     allStudents = [];
@@ -1170,12 +1207,21 @@ function renderStudentsList() {
     var n = adminName(s);
     var st = lessonStats[s.id] || {count:0, last:''};
     var total = parseInt(s.totalLessons) || 0;
-    var remaining = total - st.count;
-    var pct = total > 0 ? Math.min(100, Math.round(st.count / total * 100)) : 0;
+    var used = usedLessons(s, st);
+    var remaining = total - used;
+    var pct = total > 0 ? Math.min(100, Math.round(used / total * 100)) : 0;
+    var pace = paceStatus(s, st);
     var badge = '';
-    if (total > 0 && remaining <= 0) badge = ' <span class="s-badge done">סיים חבילה</span>';
-    else if (total > 0 && remaining === 1) badge = ' <span class="s-badge warn">שיעור אחרון!</span>';
-    else if (st.last && daysSince(st.last) > 14) badge = ' <span class="s-badge stale">לא קבע שיעור</span>';
+    if (pace) {
+      if (pace.code === 'done') badge = ' <span class="s-badge done">סיים חבילה</span>';
+      else if (total > 0 && remaining === 1) badge = ' <span class="s-badge warn">שיעור אחרון!</span>';
+      else if (pace.code === 'expired') badge = ' <span class="s-badge warn">פג תוקף</span>';
+      else if (pace.code === 'behind') badge = ' <span class="s-badge warn">בפיגור מהקצב</span>';
+      else if (pace.code === 'expiring') badge = ' <span class="s-badge stale">התוקף מסתיים</span>';
+      else if (pace.code === 'stale') badge = ' <span class="s-badge stale">לא קבע שיעור</span>';
+    } else if (st.last && daysSince(st.last) > 14) {
+      badge = ' <span class="s-badge stale">לא קבע שיעור</span>';
+    }
     var meta = [];
     if (s.cohort) meta.push('מחזור ' + s.cohort);
     if (s.studentType) meta.push(s.studentType);
@@ -1186,7 +1232,7 @@ function renderStudentsList() {
       '<div class="student-meta">' + escapeHtmlTx(meta.join(' · ')) + '</div>' +
       (total > 0 ? '<div class="s-progress"><div class="s-progress-fill" style="width:' + pct + '%"></div></div>' : '') +
       '</div>' +
-      '<div class="s-count">' + st.count + (total > 0 ? '/' + total : '') + '</div>' +
+      '<div class="s-count">' + used + (total > 0 ? '/' + total : '') + '</div>' +
       '</div>';
   });
   listEl.innerHTML = html || '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">אין סטודנטים עדיין</div></div>';
@@ -1200,10 +1246,15 @@ function renderAdminAlerts(active) {
   active.forEach(function(s) {
     var st = lessonStats[s.id] || {count:0, last:''};
     var total = parseInt(s.totalLessons) || 0;
-    var remaining = total - st.count;
+    var used = usedLessons(s, st);
+    var remaining = total - used;
     var n = adminName(s);
+    var pace = paceStatus(s, st);
     if (total > 0 && remaining === 1) alerts.push({cls:'warn', txt:'🔔 ל־' + n + ' נשאר שיעור אחרון'});
-    else if (total > 0 && remaining <= 0) alerts.push({cls:'done', txt:'🎓 ' + n + ' סיים את החבילה'});
+    else if (pace && pace.code === 'done') alerts.push({cls:'done', txt:'🎓 ' + n + ' סיים את החבילה'});
+    else if (pace && pace.code === 'expired') alerts.push({cls:'warn', txt:'⌛ החבילה של ' + n + ' פגת תוקף ונשארו לו ' + pace.remaining + ' שיעורים'});
+    else if (pace && pace.code === 'behind') alerts.push({cls:'warn', txt:'🏃 ' + n + ' בפיגור מהקצב — ' + pace.remaining + ' שיעורים ב־' + pace.days + ' ימים'});
+    else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים'});
     else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים'});
   });
   el.innerHTML = alerts.map(function(a) {
@@ -1221,13 +1272,15 @@ function openStudentModal(id) {
   document.getElementById('e-cohort').value = st0.cohort || '';
   document.getElementById('e-type').value = st0.studentType || '';
   document.getElementById('e-total').value = st0.totalLessons || '';
+  document.getElementById('e-offset').value = st0.lessonsOffset || '';
+  document.getElementById('e-expiry').value = st0.expiry || '';
   document.getElementById('e-phone').value = st0.phone || '';
   document.getElementById('e-age').value = st0.age || '';
   document.getElementById('e-occupation').value = st0.occupation || '';
   document.getElementById('e-about').value = st0.about || '';
   document.getElementById('e-archived').checked = !!st0.archived;
   var st = lessonStats[id] || {count:0};
-  document.getElementById('sm-lessons-info').textContent = 'ניצל ' + st.count + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '');
+  document.getElementById('sm-lessons-info').textContent = 'ניצל ' + usedLessons(st0, st) + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '') + (st0.expiry ? ' · תוקף עד ' + st0.expiry : '');
   document.getElementById('student-modal').classList.add('open');
 }
 function closeStudentModal() { document.getElementById('student-modal').classList.remove('open'); }
@@ -1239,6 +1292,8 @@ function saveStudent() {
     cohort: document.getElementById('e-cohort').value.trim(),
     studentType: document.getElementById('e-type').value,
     totalLessons: parseInt(document.getElementById('e-total').value) || 0,
+    lessonsOffset: parseInt(document.getElementById('e-offset').value) || 0,
+    expiry: document.getElementById('e-expiry').value || '',
     phone: document.getElementById('e-phone').value.trim(),
     age: parseInt(document.getElementById('e-age').value) || null,
     occupation: document.getElementById('e-occupation').value.trim(),
@@ -1272,16 +1327,21 @@ function loadStudentHome() {
       var card = document.getElementById('my-progress-card');
       if (!total) { card.style.display = 'none'; return; }
       card.style.display = 'block';
-      var used = lessons.length;
+      var used = lessons.length + (parseInt(u.lessonsOffset) || 0);
       var remaining = total - used;
       var pct = Math.min(100, Math.round(used / total * 100));
       document.getElementById('mp-count').textContent = used + ' / ' + total;
       document.getElementById('mp-fill').style.width = pct + '%';
       var msgEl = document.getElementById('mp-msg');
       var last = lessons.length ? lessons[0].date : '';
-      if (remaining <= 0) { msgEl.textContent = '🎓 סיימת את החבילה — כל הכבוד!'; msgEl.style.color = 'var(--green-dark)'; }
-      else if (last && daysSince(last) <= 14) { msgEl.textContent = '🚀 אתה בקצב מצוין! נשארו לך ' + remaining + ' שיעורים'; msgEl.style.color = 'var(--green-dark)'; }
-      else { msgEl.textContent = '📅 עבר קצת זמן — כדאי לקבוע שיעור! נשארו לך ' + remaining + ' שיעורים'; msgEl.style.color = '#b45309'; }
+      var st = {count: lessons.length, last: last};
+      var pace = paceStatus(u, st);
+      if (!pace || pace.code === 'done') { msgEl.textContent = '🎓 סיימת את החבילה — כל הכבוד!'; msgEl.style.color = 'var(--green-dark)'; }
+      else if (pace.code === 'expired') { msgEl.textContent = '⌛ תוקף החבילה הסתיים — דבר עם איתמר על המשך'; msgEl.style.color = 'var(--red)'; }
+      else if (pace.code === 'behind') { msgEl.textContent = '🏃 כדאי להזדרז לקבוע שיעור! נשארו לך ' + pace.remaining + ' שיעורים ל־' + pace.days + ' ימים'; msgEl.style.color = '#b45309'; }
+      else if (pace.code === 'expiring') { msgEl.textContent = '⌛ שים לב, התוקף מסתיים בעוד ' + pace.days + ' ימים — נשארו לך ' + pace.remaining + ' שיעורים'; msgEl.style.color = '#b45309'; }
+      else if (pace.code === 'stale') { msgEl.textContent = '📅 עבר קצת זמן — כדאי לקבוע שיעור! נשארו לך ' + pace.remaining + ' שיעורים'; msgEl.style.color = '#b45309'; }
+      else { msgEl.textContent = '🚀 אתה בקצב מצוין! נשארו לך ' + pace.remaining + ' שיעורים'; msgEl.style.color = 'var(--green-dark)'; }
     });
   });
 }
