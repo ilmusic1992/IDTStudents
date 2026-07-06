@@ -340,6 +340,13 @@ body {
 }
 .tx-type-btn.active-income { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
 .tx-type-btn.active-expense { background:var(--red-light); border-color:var(--red); color:var(--red); }
+.tx-kind-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.tx-kind-btn {
+  padding:10px 8px; border:1.5px solid var(--gray-300); border-radius:8px;
+  background:var(--white); font-family:'Heebo',sans-serif; font-size:12.5px;
+  font-weight:700; cursor:pointer; color:var(--gray-700); text-align:right;
+}
+.tx-kind-btn.active { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
 .ycat-row {
   display:flex; align-items:center; justify-content:space-between;
   padding:9px 0; border-bottom:1px solid var(--gray-100); font-size:13px;
@@ -623,6 +630,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
   <div class="page" id="page-lessons">
     <div class="page-content" style="padding-top:12px">
       <a class="booking-btn" id="booking-btn-lessons" target="_blank" style="display:none">📅 קביעת שיעור (דרך אתר הבוילר)</a>
+      <a class="booking-btn" id="library-btn" target="_blank" style="display:none;background:var(--green-dark)">🎬 ספריית השיעורים שלי</a>
       <div id="lessons-admin-filter" style="display:none; margin-bottom:10px">
         <select id="filter-student" onchange="loadLessons()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;">
           <option value="">כל הסטודנטים</option>
@@ -665,15 +673,15 @@ canvas { width:100% !important; display:block; border-radius:8px; }
           <div class="t-val" id="t-net">$0</div>
         </div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">מבחנים שנקנו</div>
-          <div class="stat-value" id="t-tests">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">PA שעברו</div>
-          <div class="stat-value green" id="t-pa">0</div>
-        </div>
+      <div class="trading-grid">
+        <div class="trading-card"><div class="t-label">🧪 מבחנים שנקנו</div><div class="t-val" id="t-buy">0</div></div>
+        <div class="trading-card"><div class="t-label">🚀 עברו ללייב</div><div class="t-val green" id="t-pass">0</div></div>
+        <div class="trading-card"><div class="t-label">💰 משיכות</div><div class="t-val green" id="t-pay">0</div></div>
+      </div>
+      <div class="trading-grid">
+        <div class="trading-card"><div class="t-label">🔥 שריפות מבחן</div><div class="t-val red" id="t-burnt">0</div></div>
+        <div class="trading-card"><div class="t-label">💥 שריפות לייב</div><div class="t-val red" id="t-burnl">0</div></div>
+        <div class="trading-card"><div class="t-label">💵 סכום משיכות</div><div class="t-val green" id="t-paysum">$0</div></div>
       </div>
       <div class="tx-header">
         <div class="section-title" style="margin:0">תנועות החודש</div>
@@ -682,10 +690,8 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <div id="tx-list">
         <div class="tx-empty">אין תנועות החודש</div>
       </div>
-      <div class="section-title">נתונים נוספים</div>
+      <div class="section-title">הערות לחודש</div>
       <div class="card">
-        <div class="input-row"><label>מבחנים שנקנו</label><input type="number" id="i-tests" placeholder="0" oninput="saveTradingDebounced()"></div>
-        <div class="input-row"><label>PA שעברו</label><input type="number" id="i-pa" placeholder="0" oninput="saveTradingDebounced()"></div>
         <div class="input-row"><label>הערות</label><input type="text" id="i-notes" placeholder="הערות..." oninput="saveTradingDebounced()"></div>
       </div>
       <div class="section-title">סיכום שנתי <span id="y-label" style="color:var(--gray-500);font-weight:500"></span></div>
@@ -702,6 +708,16 @@ canvas { width:100% !important; display:block; border-radius:8px; }
           <div class="t-label">רווח נקי</div>
           <div class="t-val" id="y-net">$0</div>
         </div>
+      </div>
+      <div class="trading-grid">
+        <div class="trading-card"><div class="t-label">🧪 מבחנים שנקנו</div><div class="t-val" id="y-buy">0</div></div>
+        <div class="trading-card"><div class="t-label">🚀 עברו ללייב</div><div class="t-val green" id="y-pass">0</div></div>
+        <div class="trading-card"><div class="t-label">💰 משיכות</div><div class="t-val green" id="y-pay">0</div></div>
+      </div>
+      <div class="trading-grid">
+        <div class="trading-card"><div class="t-label">🔥 שריפות מבחן</div><div class="t-val red" id="y-burnt">0</div></div>
+        <div class="trading-card"><div class="t-label">💥 שריפות לייב</div><div class="t-val red" id="y-burnl">0</div></div>
+        <div class="trading-card"><div class="t-label">💵 סכום משיכות</div><div class="t-val green" id="y-paysum">$0</div></div>
       </div>
       <div class="card" id="y-cats" style="padding:6px 14px">
         <div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים השנה</div>
@@ -1018,20 +1034,11 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <div class="modal-title">הוספת תנועה</div>
       <button class="modal-close" onclick="closeTxModal()">✕</button>
     </div>
-    <div class="tx-type-toggle">
-      <button class="tx-type-btn" id="tx-btn-income" onclick="setTxType('income')">+ הכנסה</button>
-      <button class="tx-type-btn" id="tx-btn-expense" onclick="setTxType('expense')">− הוצאה</button>
-    </div>
-    <div class="input-group" id="tx-cat-group" style="display:none">
-      <label class="input-label">קטגוריה</label>
-      <select id="tx-cat" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);">
-        <option value="מבחן">מבחן</option>
-        <option value="תוכנות">תוכנות</option>
-        <option value="כלי עזר">כלי עזר</option>
-        <option value="אחר">אחר</option>
-      </select>
-    </div>
     <div class="input-group">
+      <label class="input-label">סוג תנועה</label>
+      <div class="tx-kind-grid" id="tx-kind-grid"></div>
+    </div>
+    <div class="input-group" id="tx-amount-group">
       <label class="input-label">סכום ($)</label>
       <input class="input-field" type="number" id="tx-amount" placeholder="0" min="0" step="0.01" style="direction:ltr">
     </div>
@@ -1079,6 +1086,9 @@ var COURSE_SYLLABUS = [
   'תוכן פסיכולוגי',
   'ניהול המסחר כעסק'
 ];
+
+// קישור לספריית השיעורים המוקלטים — עדכן כאן
+var LESSONS_LIBRARY_URL = "";
 
 // קישור לקביעת שיעור (אתר הבוילר) — עדכן כאן
 var BOOKING_URL = "https://www.stockshunter.co.il/booking-calendar/%D7%A9%D7%99%D7%A2%D7%95%D7%A8-%D7%A4%D7%A8%D7%98%D7%99-%D7%A2%D7%9D-%D7%90%D7%99%D7%AA%D7%9E%D7%A8-%D7%9C%D7%A9%D7%A0%D7%A1%D7%A7%D7%99?referral=service_list_widget";
@@ -1179,6 +1189,10 @@ function initApp() {
       var el = document.getElementById(id);
       if (el) { el.href = BOOKING_URL; el.style.display = 'flex'; }
     });
+  }
+  if (LESSONS_LIBRARY_URL) {
+    var lib = document.getElementById('library-btn');
+    if (lib) { lib.href = LESSONS_LIBRARY_URL; lib.style.display = 'flex'; }
   }
 
   updateMonthLabel();
@@ -1580,11 +1594,52 @@ function getTradingKey() {
   return currentMonth.getFullYear() + '-' + String(currentMonth.getMonth() + 1).padStart(2,'0');
 }
 
+var TX_KINDS = {
+  buyTest:  {label: '🧪 קניית מבחן', money: 'expense', cat: 'מבחנים'},
+  burnTest: {label: '🔥 שריפת מבחן', money: null},
+  passTest: {label: '🚀 מבחן עבר ללייב', money: null},
+  payLive:  {label: '💳 תשלום על לייב', money: 'expense', cat: 'לייב'},
+  payout:   {label: '💰 משיכה', money: 'income'},
+  burnLive: {label: '💥 לייב נשרף', money: null},
+  tools:    {label: '🛠️ כלים / תוכנות', money: 'expense', cat: 'כלים/תוכנות'},
+  otherExp: {label: '📌 הוצאה אחרת', money: 'expense', cat: 'אחר'},
+  otherInc: {label: '📈 הכנסה אחרת', money: 'income'}
+};
+
+function txCounts(txs) {
+  var c = {buy:0, pass:0, burnt:0, burnl:0, pay:0, paysum:0, inc:0, exp:0};
+  txs.forEach(function(t) {
+    var a = parseFloat(t.amount) || 0;
+    var k = TX_KINDS[t.kind];
+    if (t.kind === 'buyTest') c.buy++;
+    if (t.kind === 'passTest') c.pass++;
+    if (t.kind === 'burnTest') c.burnt++;
+    if (t.kind === 'burnLive') c.burnl++;
+    if (t.kind === 'payout') { c.pay++; c.paysum += a; }
+    var money = k ? k.money : t.type;
+    if (money === 'income') c.inc += a;
+    else if (money === 'expense') c.exp += a;
+  });
+  return c;
+}
+
+function setCounters(prefix, c) {
+  document.getElementById(prefix + '-buy').textContent = c.buy;
+  document.getElementById(prefix + '-pass').textContent = c.pass;
+  document.getElementById(prefix + '-pay').textContent = c.pay;
+  document.getElementById(prefix + '-burnt').textContent = c.burnt;
+  document.getElementById(prefix + '-burnl').textContent = c.burnl;
+  document.getElementById(prefix + '-paysum').textContent = '$' + c.paysum.toLocaleString();
+}
+
 function loadTrading() {
   var uid = getTradingUID();
   if (!uid) {
     document.getElementById('tx-list').innerHTML = '<div class="tx-empty">בחר סטודנט כדי לראות נתונים</div>';
+    var zero = {buy:0, pass:0, burnt:0, burnl:0, pay:0, paysum:0, inc:0, exp:0};
     updateTradingUI(0, 0);
+    setCounters('t', zero);
+    setCounters('y', zero);
     document.getElementById('y-income').textContent = '$0';
     document.getElementById('y-expenses').textContent = '$0';
     document.getElementById('y-net').textContent = '+$0';
@@ -1593,11 +1648,7 @@ function loadTrading() {
   }
   db.collection('trading').doc(uid).collection('monthly').doc(getTradingKey()).get().then(function(doc) {
     var d = doc.exists ? doc.data() : {};
-    document.getElementById('i-tests').value = d.tests || '';
-    document.getElementById('i-pa').value = d.pa || '';
     document.getElementById('i-notes').value = d.notes || '';
-    document.getElementById('t-tests').textContent = d.tests || 0;
-    document.getElementById('t-pa').textContent = d.pa || 0;
   });
   loadTransactions(uid);
   loadYearly(uid);
@@ -1608,15 +1659,17 @@ function loadYearly(uid) {
   document.getElementById('y-label').textContent = '· ' + y;
   db.collection('trading').doc(uid).collection('tx')
     .where('month', '>=', y + '-01').where('month', '<=', y + '-12').get().then(function(snap) {
-    var inc = 0, exp = 0, cats = {};
-    snap.forEach(function(doc) {
-      var t = doc.data();
-      var a = parseFloat(t.amount) || 0;
-      if (t.type === 'income') { inc += a; }
-      else {
-        exp += a;
-        var c = t.category || 'אחר';
-        cats[c] = (cats[c] || 0) + a;
+    var txs = [];
+    snap.forEach(function(doc) { txs.push(doc.data()); });
+    var c = txCounts(txs);
+    setCounters('y', c);
+    var inc = c.inc, exp = c.exp, cats = {};
+    txs.forEach(function(t) {
+      var k = TX_KINDS[t.kind];
+      var money = k ? k.money : t.type;
+      if (money === 'expense') {
+        var cat = (k && k.cat) || t.category || 'אחר';
+        cats[cat] = (cats[cat] || 0) + (parseFloat(t.amount) || 0);
       }
     });
     var net = inc - exp;
@@ -1640,29 +1693,35 @@ function loadTransactions(uid) {
     var txs = [];
     snap.forEach(function(doc) { var t = doc.data(); t.id = doc.id; txs.push(t); });
     txs.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-    var inc = 0, exp = 0;
-    txs.forEach(function(t) {
-      if (t.type === 'income') inc += (parseFloat(t.amount) || 0);
-      else exp += (parseFloat(t.amount) || 0);
-    });
+    var c = txCounts(txs);
+    setCounters('t', c);
     var list = document.getElementById('tx-list');
     if (!txs.length) {
       list.innerHTML = '<div class="tx-empty">אין תנועות החודש<br><span style="font-size:11px">לחץ "+ הוספה" כדי לרשום הכנסה או הוצאה</span></div>';
     } else {
       list.innerHTML = txs.map(function(t) {
-        var isInc = t.type === 'income';
+        var k = TX_KINDS[t.kind];
+        var money = k ? k.money : t.type;
+        var isInc = money === 'income';
+        var kindLabel = k ? k.label : (t.category || (isInc ? 'הכנסה' : 'הוצאה'));
+        var amountHtml = '';
+        if (money) {
+          amountHtml = '<div class="tx-amount ' + (isInc ? 'income' : 'expense') + '">' + (isInc ? '+' : '−') + '$' + (parseFloat(t.amount) || 0).toLocaleString() + '</div>';
+        }
+        var iconCls = money ? (isInc ? 'income' : 'expense') : 'income';
+        var iconTxt = money ? (isInc ? '+' : '−') : '•';
         return '<div class="tx-row">' +
-          '<div class="tx-icon ' + t.type + '">' + (isInc ? '+' : '−') + '</div>' +
+          '<div class="tx-icon ' + iconCls + '"' + (money ? '' : ' style="background:var(--gray-100);color:var(--gray-500)"') + '>' + iconTxt + '</div>' +
           '<div class="tx-info">' +
-            '<div class="tx-desc">' + escapeHtmlTx(t.desc || t.category || (isInc ? 'הכנסה' : 'הוצאה')) + '</div>' +
-            '<div class="tx-date">' + (t.date || '') + (t.category ? ' · ' + escapeHtmlTx(t.category) : '') + '</div>' +
+            '<div class="tx-desc">' + escapeHtmlTx(kindLabel) + (t.desc ? ' — ' + escapeHtmlTx(t.desc) : '') + '</div>' +
+            '<div class="tx-date">' + (t.date || '') + '</div>' +
           '</div>' +
-          '<div class="tx-amount ' + t.type + '">' + (isInc ? '+' : '−') + '$' + (parseFloat(t.amount) || 0).toLocaleString() + '</div>' +
+          amountHtml +
           '<button class="tx-del" onclick="deleteTx(\'' + t.id + '\')">🗑</button>' +
         '</div>';
       }).join('');
     }
-    updateTradingUI(inc, exp);
+    updateTradingUI(c.inc, c.exp);
   });
 }
 
@@ -1680,18 +1739,34 @@ function updateTradingUI(inc, exp) {
   document.getElementById('t-net').className = 't-val ' + (net >= 0 ? 'green' : 'red');
 }
 
-var txType = 'income';
-function setTxType(t) {
-  txType = t;
-  document.getElementById('tx-btn-income').className = 'tx-type-btn' + (t === 'income' ? ' active-income' : '');
-  document.getElementById('tx-btn-expense').className = 'tx-type-btn' + (t === 'expense' ? ' active-expense' : '');
-  document.getElementById('tx-cat-group').style.display = (t === 'expense') ? 'block' : 'none';
+var txKind = 'buyTest';
+function setTxKind(k) {
+  txKind = k;
+  var grid = document.getElementById('tx-kind-grid');
+  Array.prototype.forEach.call(grid.children, function(btn) {
+    btn.className = 'tx-kind-btn' + (btn.dataset.kind === k ? ' active' : '');
+  });
+  document.getElementById('tx-amount-group').style.display = TX_KINDS[k].money ? 'block' : 'none';
+}
+
+function buildTxKindGrid() {
+  var grid = document.getElementById('tx-kind-grid');
+  if (grid.children.length) return;
+  Object.keys(TX_KINDS).forEach(function(k) {
+    var btn = document.createElement('button');
+    btn.className = 'tx-kind-btn';
+    btn.dataset.kind = k;
+    btn.textContent = TX_KINDS[k].label;
+    btn.onclick = function() { setTxKind(k); };
+    grid.appendChild(btn);
+  });
 }
 
 function openTxModal() {
   var uid = getTradingUID();
   if (!uid) { alert('בחר סטודנט קודם'); return; }
-  setTxType('income');
+  buildTxKindGrid();
+  setTxKind('buyTest');
   document.getElementById('tx-amount').value = '';
   document.getElementById('tx-desc').value = '';
   document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
@@ -1702,14 +1777,16 @@ function closeTxModal() { document.getElementById('tx-modal').classList.remove('
 function saveTx() {
   var uid = getTradingUID();
   if (!uid) return;
-  var amount = parseFloat(document.getElementById('tx-amount').value);
+  var k = TX_KINDS[txKind];
+  var amount = parseFloat(document.getElementById('tx-amount').value) || 0;
   var date = document.getElementById('tx-date').value;
-  if (!amount || amount <= 0) { alert('נא להזין סכום'); return; }
+  if (k.money && amount <= 0) { alert('נא להזין סכום'); return; }
   if (!date) { alert('נא לבחור תאריך'); return; }
   db.collection('trading').doc(uid).collection('tx').add({
-    type: txType,
-    amount: amount,
-    category: txType === 'expense' ? document.getElementById('tx-cat').value : '',
+    kind: txKind,
+    type: k.money || 'event',
+    amount: k.money ? amount : 0,
+    category: k.cat || '',
     desc: document.getElementById('tx-desc').value || '',
     date: date,
     month: date.slice(0, 7),
@@ -1736,14 +1813,10 @@ function saveTradingDebounced() {
   tradingTimer = setTimeout(function() {
     var uid = getTradingUID() || currentUser.uid;
     var d = {
-      tests: parseInt(document.getElementById('i-tests').value) || 0,
-      pa: parseInt(document.getElementById('i-pa').value) || 0,
       notes: document.getElementById('i-notes').value || '',
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     db.collection('trading').doc(uid).collection('monthly').doc(getTradingKey()).set(d, {merge:true});
-    document.getElementById('t-tests').textContent = d.tests || 0;
-    document.getElementById('t-pa').textContent = d.pa || 0;
   }, 800);
 }
 
