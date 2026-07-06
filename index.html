@@ -347,6 +347,22 @@ body {
   font-weight:700; cursor:pointer; color:var(--gray-700); text-align:right;
 }
 .tx-kind-btn.active { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
+.ci-q { margin-bottom:14px; }
+.ci-q-label { font-size:13.5px; font-weight:700; margin-bottom:7px; }
+.ci-opts { display:flex; gap:6px; flex-wrap:wrap; }
+.ci-opt {
+  border:1.5px solid var(--gray-300); background:var(--white); border-radius:8px;
+  padding:8px 14px; font-family:'Heebo',sans-serif; font-size:13px; font-weight:700;
+  cursor:pointer; color:var(--gray-700);
+}
+.ci-opt.sel { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
+.mn-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--gray-100); font-size:13.5px; }
+.mn-row:last-child { border-bottom:none; }
+.mn-rank { width:26px; height:26px; border-radius:50%; background:var(--gray-100); color:var(--gray-700); font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mn-row.top1 .mn-rank { background:#fef3c7; color:#b45309; }
+.mn-row.me { background:var(--green-pale); border-radius:8px; padding-right:6px; padding-left:6px; }
+.mn-name { flex:1; font-weight:600; }
+.mn-pts { font-weight:800; color:var(--green-dark); }
 .ycat-row {
   display:flex; align-items:center; justify-content:space-between;
   padding:9px 0; border-bottom:1px solid var(--gray-100); font-size:13px;
@@ -730,6 +746,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
     <div class="page-content" style="padding-top:12px">
       <div class="section-title" style="margin-top:0">כלים פנימיים</div>
       <div class="ext-grid" style="margin-bottom:18px">
+        <div class="ext-card" onclick="showCalc('mental')" style="border:1.5px solid var(--green)"><div class="ext-icon">🧠</div><div class="ext-name">מאמן מנטלי</div></div>
         <div class="ext-card" onclick="showCalc('goal')"><div class="ext-icon">🎯</div><div class="ext-name">מחשבון יעד שנתי</div></div>
         <div class="ext-card" onclick="showCalc('rr')"><div class="ext-icon">📊</div><div class="ext-name">טבלת סיכון/סיכוי</div></div>
         <div class="ext-card" onclick="showCalc('contracts')"><div class="ext-icon">📐</div><div class="ext-name">נקודות / חוזים</div></div>
@@ -780,6 +797,49 @@ canvas { width:100% !important; display:block; border-radius:8px; }
 </div>
 
 <!-- ====== CALC: GOAL ====== -->
+<div class="calc-screen" id="calc-mental">
+  <div class="calc-header">
+    <button class="back-btn" onclick="hideCalc()">‹</button>
+    <div class="calc-title">🧠 מאמן מנטלי</div>
+  </div>
+  <div class="calc-content">
+    <div id="mental-warning" style="display:none" class="admin-alert warn">🚧 לפי הצ'ק-אין של הבוקר — היום עדיף לא לסחור, או לסחור קטן במיוחד</div>
+    <div class="trading-grid" id="mental-scoreboard">
+      <div class="trading-card"><div class="t-label">נקודות השבוע</div><div class="t-val green" id="mn-week">0</div></div>
+      <div class="trading-card"><div class="t-label">נקודות החודש</div><div class="t-val green" id="mn-month">0</div></div>
+      <div class="trading-card"><div class="t-label">רצף ימים</div><div class="t-val" id="mn-streak">0</div></div>
+    </div>
+    <div id="mental-checkins">
+      <div class="section-title">צ'ק-אין</div>
+      <div class="ext-grid">
+        <div class="ext-card" onclick="openCheckin('morning')"><div class="ext-icon">☀️</div><div class="ext-name">בוקר לפני מסחר</div></div>
+        <div class="ext-card" onclick="openCheckin('eod')"><div class="ext-icon">🌙</div><div class="ext-name">סוף יום מסחר</div></div>
+        <div class="ext-card" onclick="openCheckin('weekstart')"><div class="ext-icon">📅</div><div class="ext-name">תחילת שבוע</div></div>
+        <div class="ext-card" onclick="openCheckin('weekend')"><div class="ext-icon">📊</div><div class="ext-name">סיכום שבועי</div></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin:12px 2px;cursor:pointer;color:var(--gray-700)">
+        <input type="checkbox" id="mn-anon" onchange="saveAnonPref()" style="width:16px;height:16px;accent-color:var(--green)">
+        הצג אותי כ"תלמיד אנונימי" בטבלת התחרות
+      </label>
+    </div>
+    <div class="section-title">🏆 טבלת התחרות — החודש</div>
+    <div class="card" id="mn-board" style="padding:6px 14px">
+      <div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים עדיין</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="checkin-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="ci-title">צ'ק-אין</div>
+      <button class="modal-close" onclick="closeCheckin()">✕</button>
+    </div>
+    <div id="ci-questions"></div>
+    <button class="btn-primary" onclick="saveCheckin()">שמור צ'ק-אין</button>
+  </div>
+</div>
+
 <div class="calc-screen" id="calc-goal">
   <div class="calc-header">
     <button class="back-btn" onclick="hideCalc()">‹</button>
@@ -1821,11 +1881,209 @@ function saveTradingDebounced() {
 }
 
 // ============================================================
+// MENTAL COACH
+// ============================================================
+var CHECKIN_TYPES = {
+  morning: {title: '☀️ בוקר לפני מסחר', daily: true, qs: [
+    {id:'mood',  label:'מה מצב הרוח שלך היום?', type:'scale'},
+    {id:'ate',   label:'האם אכלת ארוחת בוקר?', type:'yn'},
+    {id:'slept', label:'האם ישנת לפחות 6 שעות?', type:'yn'},
+    {id:'chart', label:'האם ניתחת את הגרף לפני הפתיחה?', type:'yn'},
+    {id:'plan',  label:'האם אתה מגיע לגרף עם תוכנית כתובה?', type:'yn'},
+    {id:'time',  label:'יש לך זמן פנוי וייעודי לסחור היום?', type:'yn'}
+  ]},
+  eod: {title: '🌙 סוף יום מסחר', daily: true, qs: [
+    {id:'journal', label:'מילאת יומן מסחר על כל העסקאות?', type:'yn'},
+    {id:'stick',   label:'עמדת בתוכנית שהגדרת בבוקר?', type:'yn'},
+    {id:'stop',    label:'עצרת בזמן (בלי אובר-טרייד)?', type:'yn'},
+    {id:'feel',    label:'איך אתה מרגיש עם הביצוע היום?', type:'scale'}
+  ]},
+  weekstart: {title: '📅 תחילת שבוע', weekly: true, qs: [
+    {id:'goals', label:'הצבתי מטרות ברורות לשבוע', type:'yn'},
+    {id:'sched', label:'תכננתי אילו ימים ושעות אסחר', type:'yn'},
+    {id:'mind',  label:'מצב מנטלי כללי לקראת השבוע', type:'scale'}
+  ]},
+  weekend: {title: '📊 סיכום שבועי', weekly: true, qs: [
+    {id:'wplan',   label:'עמדתי בתוכנית השבועית שלי', type:'yn'},
+    {id:'wjournal',label:'מילאתי יומן בכל יום מסחר', type:'yn'},
+    {id:'learn',   label:'מה למדתי על עצמי השבוע?', type:'text'},
+    {id:'grade',   label:'ציון כללי לשבוע', type:'scale'}
+  ]}
+};
+
+var ciType = null, ciAnswers = {};
+
+function isoWeek(d) {
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return t.getUTCFullYear() + '-W' + String(Math.ceil((((t - y0) / 86400000) + 1) / 7)).padStart(2, '0');
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function thisMonthStr() { return todayStr().slice(0, 7); }
+
+function initMental() {
+  document.getElementById('mental-checkins').style.display = isAdmin ? 'none' : 'block';
+  if (!isAdmin) {
+    db.collection('users').doc(currentUser.uid).get().then(function(doc) {
+      document.getElementById('mn-anon').checked = !!(doc.exists && doc.data().mentalAnon);
+    });
+    loadMyMentalScore();
+  } else {
+    document.getElementById('mn-week').textContent = '—';
+    document.getElementById('mn-month').textContent = '—';
+    document.getElementById('mn-streak').textContent = '—';
+  }
+  loadMentalBoard();
+}
+
+function saveAnonPref() {
+  db.collection('users').doc(currentUser.uid).set({mentalAnon: document.getElementById('mn-anon').checked}, {merge:true});
+}
+
+function loadMyMentalScore() {
+  db.collection('mental').where('uid', '==', currentUser.uid).get().then(function(snap) {
+    var week = isoWeek(new Date()), month = thisMonthStr();
+    var w = 0, m = 0, days = {};
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      if (d.week === week) w += d.score;
+      if (d.month === month) m += d.score;
+      if (d.date) days[d.date] = true;
+    });
+    document.getElementById('mn-week').textContent = w;
+    document.getElementById('mn-month').textContent = m;
+    var streak = 0, cur = new Date();
+    for (var i = 0; i < 60; i++) {
+      if (days[cur.toISOString().split('T')[0]]) { streak++; cur.setDate(cur.getDate() - 1); }
+      else break;
+    }
+    document.getElementById('mn-streak').textContent = streak;
+    var warnDoc = 'morning_' + todayStr();
+    db.collection('mental').doc(currentUser.uid + '_' + warnDoc).get().then(function(doc) {
+      var show = false;
+      if (doc.exists) {
+        var a = doc.data().answers || {};
+        if (a.ate === 0 || a.plan === 0 || (a.mood && a.mood <= 2)) show = true;
+      }
+      document.getElementById('mental-warning').style.display = show ? 'flex' : 'none';
+    });
+  });
+}
+
+function loadMentalBoard() {
+  db.collection('mental').where('month', '==', thisMonthStr()).get().then(function(snap) {
+    var byUid = {};
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var e = byUid[d.uid] = byUid[d.uid] || {score: 0, name: d.name || 'תלמיד', anon: false};
+      e.score += d.score;
+      if (d.anon) e.anon = true;
+      if (d.name) e.name = d.name;
+    });
+    var rows = Object.keys(byUid).map(function(uid) { return Object.assign({uid: uid}, byUid[uid]); });
+    rows.sort(function(a, b) { return b.score - a.score; });
+    var board = document.getElementById('mn-board');
+    if (!rows.length) {
+      board.innerHTML = '<div class="ycat-row" style="border:none;color:var(--gray-500)">אין נתונים עדיין</div>';
+      return;
+    }
+    var anonCounter = 0;
+    board.innerHTML = rows.map(function(r, i) {
+      var isMe = r.uid === currentUser.uid;
+      var display;
+      if (isAdmin || isMe) display = r.name + (r.anon ? ' (אנונימי)' : '');
+      else if (r.anon) { anonCounter++; display = 'תלמיד אנונימי ' + anonCounter; }
+      else display = r.name;
+      return '<div class="mn-row' + (i === 0 ? ' top1' : '') + (isMe ? ' me' : '') + '">' +
+        '<div class="mn-rank">' + (i + 1) + '</div>' +
+        '<div class="mn-name">' + escapeHtmlTx(display) + (isMe ? ' (אני)' : '') + '</div>' +
+        '<div class="mn-pts">' + r.score + ' נק\'</div>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+function openCheckin(type) {
+  ciType = type;
+  ciAnswers = {};
+  var cfg = CHECKIN_TYPES[type];
+  document.getElementById('ci-title').textContent = cfg.title;
+  var html = '';
+  cfg.qs.forEach(function(q) {
+    html += '<div class="ci-q"><div class="ci-q-label">' + q.label + '</div>';
+    if (q.type === 'yn') {
+      html += '<div class="ci-opts">' +
+        '<button class="ci-opt" data-q="' + q.id + '" data-v="1" onclick="ciPick(this)">כן</button>' +
+        '<button class="ci-opt" data-q="' + q.id + '" data-v="0" onclick="ciPick(this)">לא</button></div>';
+    } else if (q.type === 'scale') {
+      html += '<div class="ci-opts">';
+      for (var v = 1; v <= 5; v++) html += '<button class="ci-opt" data-q="' + q.id + '" data-v="' + v + '" onclick="ciPick(this)">' + v + '</button>';
+      html += '</div>';
+    } else {
+      html += '<input class="input-field" type="text" id="ci-text-' + q.id + '" placeholder="כתוב כאן...">';
+    }
+    html += '</div>';
+  });
+  document.getElementById('ci-questions').innerHTML = html;
+  document.getElementById('checkin-modal').classList.add('open');
+}
+function closeCheckin() { document.getElementById('checkin-modal').classList.remove('open'); }
+
+function ciPick(btn) {
+  var q = btn.dataset.q;
+  ciAnswers[q] = parseInt(btn.dataset.v);
+  var all = document.querySelectorAll('.ci-opt[data-q="' + q + '"]');
+  Array.prototype.forEach.call(all, function(b) { b.className = 'ci-opt' + (b === btn ? ' sel' : ''); });
+}
+
+function saveCheckin() {
+  var cfg = CHECKIN_TYPES[ciType];
+  var score = 0, answers = {};
+  for (var i = 0; i < cfg.qs.length; i++) {
+    var q = cfg.qs[i];
+    if (q.type === 'text') {
+      var t = (document.getElementById('ci-text-' + q.id).value || '').trim();
+      answers[q.id] = t;
+      if (t) score += 5;
+    } else {
+      if (ciAnswers[q.id] === undefined) { alert('נא לענות על כל השאלות'); return; }
+      answers[q.id] = ciAnswers[q.id];
+      score += q.type === 'yn' ? (ciAnswers[q.id] ? 10 : 0) : ciAnswers[q.id] * 2;
+    }
+  }
+  var period = cfg.daily ? todayStr() : isoWeek(new Date());
+  var docId = currentUser.uid + '_' + ciType + '_' + period;
+  var anon = document.getElementById('mn-anon').checked;
+  db.collection('mental').doc(docId).set({
+    uid: currentUser.uid,
+    name: currentUser.displayName || currentUser.email || 'תלמיד',
+    anon: anon,
+    type: ciType,
+    date: cfg.daily ? todayStr() : '',
+    week: isoWeek(new Date()),
+    month: thisMonthStr(),
+    score: score,
+    answers: answers,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    closeCheckin();
+    loadMyMentalScore();
+    loadMentalBoard();
+    if (ciType === 'morning' && (answers.ate === 0 || answers.plan === 0 || answers.mood <= 2)) {
+      alert('🚧 לפי הצ\'ק-אין — היום עדיף לא לסחור, או לסחור קטן במיוחד.\nהמנטליות קודמת לרווח 💚');
+    }
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+// ============================================================
 // CALCULATORS
 // ============================================================
 function showCalc(name) {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('calc-' + name).classList.add('active');
+  if (name === 'mental') initMental();
   if (name === 'goal') calcGoal();
   if (name === 'rr') buildRR();
   if (name === 'contracts') calcContracts();
@@ -1833,7 +2091,7 @@ function showCalc(name) {
 }
 
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
