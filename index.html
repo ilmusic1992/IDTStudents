@@ -836,7 +836,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <button class="modal-close" onclick="closeCheckin()">✕</button>
     </div>
     <div id="ci-questions"></div>
-    <button class="btn-primary" onclick="saveCheckin()">שמור צ'ק-אין</button>
+    <button class="btn-primary" id="ci-save-btn" onclick="saveCheckin()">שמור צ'ק-אין</button>
   </div>
 </div>
 
@@ -1883,35 +1883,83 @@ function saveTradingDebounced() {
 // ============================================================
 // MENTAL COACH
 // ============================================================
-var CHECKIN_TYPES = {
-  morning: {title: '☀️ בוקר לפני מסחר', daily: true, qs: [
-    {id:'mood',  label:'מה מצב הרוח שלך היום?', type:'scale'},
-    {id:'ate',   label:'האם אכלת ארוחת בוקר?', type:'yn'},
-    {id:'slept', label:'האם ישנת לפחות 6 שעות?', type:'yn'},
-    {id:'chart', label:'האם ניתחת את הגרף לפני הפתיחה?', type:'yn'},
-    {id:'plan',  label:'האם אתה מגיע לגרף עם תוכנית כתובה?', type:'yn'},
-    {id:'time',  label:'יש לך זמן פנוי וייעודי לסחור היום?', type:'yn'}
-  ]},
-  eod: {title: '🌙 סוף יום מסחר', daily: true, qs: [
-    {id:'journal', label:'מילאת יומן מסחר על כל העסקאות?', type:'yn'},
-    {id:'stick',   label:'עמדת בתוכנית שהגדרת בבוקר?', type:'yn'},
-    {id:'stop',    label:'עצרת בזמן (בלי אובר-טרייד)?', type:'yn'},
-    {id:'feel',    label:'איך אתה מרגיש עם הביצוע היום?', type:'scale'}
-  ]},
-  weekstart: {title: '📅 תחילת שבוע', weekly: true, qs: [
-    {id:'goals', label:'הצבתי מטרות ברורות לשבוע', type:'yn'},
-    {id:'sched', label:'תכננתי אילו ימים ושעות אסחר', type:'yn'},
-    {id:'mind',  label:'מצב מנטלי כללי לקראת השבוע', type:'scale'}
-  ]},
-  weekend: {title: '📊 סיכום שבועי', weekly: true, qs: [
-    {id:'wplan',   label:'עמדתי בתוכנית השבועית שלי', type:'yn'},
-    {id:'wjournal',label:'מילאתי יומן בכל יום מסחר', type:'yn'},
-    {id:'learn',   label:'מה למדתי על עצמי השבוע?', type:'text'},
-    {id:'grade',   label:'ציון כללי לשבוע', type:'scale'}
-  ]}
+var MENTAL_QS = {
+  // בוקר
+  mood:   {label: 'מה מצב הרוח שלך היום?', type: 'scale'},
+  plan:   {label: 'אתה מגיע לגרף עם תוכנית כתובה?', type: 'yn'},
+  sleepq: {label: 'איך ישנת הלילה?', type: 'scale'},
+  ate:    {label: 'אכלת לפני המסחר?', type: 'yn'},
+  stress: {label: 'כמה אתה רגוע מדברים שמחוץ למסחר (כסף, עבודה, בית)?', type: 'scale'},
+  energy: {label: 'מה רמת האנרגיה הפיזית שלך?', type: 'scale'},
+  chart:  {label: 'ניתחת את הגרף וסימנת רמות לפני הפתיחה?', type: 'yn'},
+  time:   {label: 'יש לך זמן פנוי וייעודי לסחור היום?', type: 'yn'},
+  hunger: {label: 'כמה אתה "רעב לנצח" היום?', type: 'hunger'},
+  // סוף יום
+  stick:  {label: 'עקבת אחרי הכללים שלך גם בעסקאות מפסידות?', type: 'yn'},
+  journal:{label: 'מילאת יומן מסחר על כל העסקאות?', type: 'yn'},
+  stop:   {label: 'עצרת בזמן, בלי אובר-טרייד?', type: 'yn'},
+  nofomo: {label: 'נמנעת מכניסות מתוך FOMO או נקמה?', type: 'yn'},
+  nostop: {label: 'שמרת על הסטופ בלי להזיז ובלי להגדיל פוזיציה מפסידה?', type: 'yn'},
+  feel:   {label: 'איך אתה מרגיש עם הביצוע שלך היום?', type: 'scale'},
+  emotion:{label: 'מה היה הרגש הדומיננטי היום?', type: 'choice', opts: ['רוגע','מפוקס','פחד','חמדנות','תסכול','שעמום'], good: ['רוגע','מפוקס']},
+  best:   {label: 'העסקה הכי טובה היום הייתה טובה כי...', type: 'text'},
+  // שבועי
+  goals:  {label: 'הצבתי מטרות ברורות לשבוע', type: 'yn'},
+  sched:  {label: 'תכננתי אילו ימים ושעות אסחר', type: 'yn'},
+  mind:   {label: 'מצב מנטלי כללי לקראת השבוע', type: 'scale'},
+  wplan:  {label: 'עמדתי בתוכנית השבועית שלי', type: 'yn'},
+  wjournal:{label: 'מילאתי יומן בכל יום מסחר', type: 'yn'},
+  worst:  {label: 'באיזה יום או שעה סחרתי הכי פחות טוב, ולמה?', type: 'text'},
+  learn:  {label: 'מה למדתי על עצמי השבוע?', type: 'text'},
+  grade:  {label: 'ציון כללי לשבוע', type: 'scale'}
 };
 
-var ciType = null, ciAnswers = {};
+var MENTAL_TIPS = {
+  plan:   'עצור 5 דקות וכתוב תוכנית: רמות מפתח, הסטאפ שאתה מחכה לו, סיכון מקסימלי — ואז חזור לגרף.',
+  mood:   'מצב רוח נמוך — קח 2 דקות של נשימות עמוקות לפני שאתה פותח את הגרף.',
+  sleepq: 'ישנת גרוע — הקטן סייז ב-50%. עייפות = החלטות אימפולסיביות.',
+  ate:    'המוח צורך גלוקוז — קח 15 דקות לאכול משהו, ואז תחזור מוכן יותר.',
+  stress: 'יש לחץ מבחוץ — הגבל את עצמך מראש לעסקה אחת מקסימום היום.',
+  energy: 'אנרגיה נמוכה — סחר רק בסשן החזק שלך, אל תשב על הגרף כל היום.',
+  chart:  'אל תיכנס לעסקה לפני שסימנת רמות — קח 10 דקות לניתוח עכשיו.',
+  time:   'אם אין זמן אמיתי — עדיף לא להיכנס בכלל מאשר להיכנס בלחץ.',
+  hunger: '"רעב לנצח" חזק מדי מוביל לאובר-טרייד. המטרה היום: לבצע נכון, לא להרוויח בכוח.',
+  stick:  'זהה איזה כלל שברת והיכן — כתוב את זה ביומן לפני שתסחר שוב.',
+  journal:'מלא יומן עכשיו, 5 דקות — מחר הזיכרון כבר ישקר לך.',
+  stop:   'היה אובר-טרייד — קבע מראש מספר עסקאות מקסימלי למחר.',
+  nofomo: 'הייתה כניסת FOMO/נקמה — בכניסה הבאה חכה לאישור מלא לפי התוכנית.',
+  nostop: 'הזזת סטופ = ביטול התוכנית תוך כדי תנועה. מחר: סטופ קשיח בלבד.',
+  feel:   'יום קשה — זה חלק מהמשחק. סקור מה היה בשליטתך ומה לא.',
+  emotion:'רגש שלילי שלט היום — התחל את מחר עם 2 דקות נשימות לפני הגרף.',
+  mind:   'מתחיל שבוע במצב מנטלי נמוך — תכנן שבוע קל: פחות עסקאות, סייז קטן.',
+  grade:  'שבוע חלש — בחר כלל אחד בלבד להתמקד בו בשבוע הבא.'
+};
+
+var CHECKIN_TYPES = {
+  morning:   {title: '☀️ בוקר לפני מסחר', daily: true, core: ['plan','mood'], pool: ['sleepq','ate','stress','energy','chart','time','hunger'], pick: 2},
+  eod:       {title: '🌙 סוף יום מסחר', daily: true, core: ['stick'], pool: ['journal','stop','nofomo','nostop','feel','emotion','best'], pick: 3},
+  weekstart: {title: '📅 תחילת שבוע', weekly: true, fixed: ['goals','sched','mind']},
+  weekend:   {title: '📊 סיכום שבועי', weekly: true, fixed: ['wplan','wjournal','worst','learn','grade']}
+};
+
+function seededPick(arr, n, seed) {
+  var a = arr.slice(), t, j, st = seed;
+  for (var i = a.length - 1; i > 0; i--) {
+    st = (st * 9301 + 49297) % 233280;
+    j = st % (i + 1);
+    t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a.slice(0, n);
+}
+
+function questionsFor(type) {
+  var cfg = CHECKIN_TYPES[type];
+  if (cfg.fixed) return cfg.fixed;
+  var seed = Math.floor(Date.now() / 86400000);
+  return cfg.core.concat(seededPick(cfg.pool, cfg.pick, seed + (type === 'eod' ? 17 : 3)));
+}
+
+var ciType = null, ciAnswers = {}, ciQids = [];
 
 function isoWeek(d) {
   var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1922,6 +1970,36 @@ function isoWeek(d) {
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function thisMonthStr() { return todayStr().slice(0, 7); }
+
+function qPoints(q, v) {
+  if (q.type === 'yn') return v ? 10 : 0;
+  if (q.type === 'scale' || q.type === 'hunger') return v * 2;
+  if (q.type === 'choice') return (q.good.indexOf(v) >= 0) ? 10 : 4;
+  if (q.type === 'text') return v ? 5 : 0;
+  return 0;
+}
+
+function qReadiness(q, v) {
+  if (q.type === 'yn') return v ? 10 : 0;
+  if (q.type === 'scale') return (v - 1) / 4 * 10;
+  if (q.type === 'hunger') return v <= 2 ? 5 : (v === 5 ? 4 : 10);
+  if (q.type === 'choice') return (q.good.indexOf(v) >= 0) ? 10 : 3;
+  return null;
+}
+
+function qIsWeak(q, v) {
+  if (q.type === 'yn') return v === 0;
+  if (q.type === 'scale') return v <= 2;
+  if (q.type === 'hunger') return v === 5 || v <= 1;
+  if (q.type === 'choice') return q.good.indexOf(v) < 0;
+  return false;
+}
+
+function lightFor(readiness) {
+  if (readiness >= 75) return {emoji: '🟢', cls: 'done', title: 'מוכן למסחר', msg: 'סחר לפי התוכנית שלך.'};
+  if (readiness >= 50) return {emoji: '🟡', cls: 'stale', title: 'מוכנות חלקית', msg: 'סחר בסייז מופחת והיכנס רק לסטאפים הכי מובהקים.'};
+  return {emoji: '🔴', cls: 'warn', title: 'מוכנות נמוכה', msg: 'היום עדיף תצפית או דמו. המנטליות קודמת לרווח.'};
+}
 
 function initMental() {
   document.getElementById('mental-checkins').style.display = isAdmin ? 'none' : 'block';
@@ -1945,12 +2023,16 @@ function saveAnonPref() {
 function loadMyMentalScore() {
   db.collection('mental').where('uid', '==', currentUser.uid).get().then(function(snap) {
     var week = isoWeek(new Date()), month = thisMonthStr();
-    var w = 0, m = 0, days = {};
+    var w = 0, m = 0, days = {}, moods = [], todayMood = null, todayMorning = null;
     snap.forEach(function(doc) {
       var d = doc.data();
       if (d.week === week) w += d.score;
       if (d.month === month) m += d.score;
       if (d.date) days[d.date] = true;
+      if (d.type === 'morning' && d.answers && typeof d.answers.mood === 'number') {
+        if (d.date === todayStr()) { todayMood = d.answers.mood; todayMorning = d; }
+        else moods.push(d.answers.mood);
+      }
     });
     document.getElementById('mn-week').textContent = w;
     document.getElementById('mn-month').textContent = m;
@@ -1960,15 +2042,21 @@ function loadMyMentalScore() {
       else break;
     }
     document.getElementById('mn-streak').textContent = streak;
-    var warnDoc = 'morning_' + todayStr();
-    db.collection('mental').doc(currentUser.uid + '_' + warnDoc).get().then(function(doc) {
-      var show = false;
-      if (doc.exists) {
-        var a = doc.data().answers || {};
-        if (a.ate === 0 || a.plan === 0 || (a.mood && a.mood <= 2)) show = true;
+
+    var banner = document.getElementById('mental-warning');
+    if (todayMorning && typeof todayMorning.readiness === 'number') {
+      var L = lightFor(todayMorning.readiness);
+      var extra = '';
+      if (moods.length >= 5 && todayMood !== null) {
+        var avg = moods.reduce(function(a, b) { return a + b; }, 0) / moods.length;
+        if (todayMood <= avg - 1.5) extra = '<br><span style="font-weight:500">שים לב: מצב הרוח שלך היום נמוך מהרגיל שלך.</span>';
       }
-      document.getElementById('mental-warning').style.display = show ? 'flex' : 'none';
-    });
+      banner.className = 'admin-alert ' + L.cls;
+      banner.innerHTML = L.emoji + ' <b>' + L.title + ' (' + todayMorning.readiness + '/100)</b> — ' + L.msg + extra;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
   });
 }
 
@@ -1999,7 +2087,7 @@ function loadMentalBoard() {
       return '<div class="mn-row' + (i === 0 ? ' top1' : '') + (isMe ? ' me' : '') + '">' +
         '<div class="mn-rank">' + (i + 1) + '</div>' +
         '<div class="mn-name">' + escapeHtmlTx(display) + (isMe ? ' (אני)' : '') + '</div>' +
-        '<div class="mn-pts">' + r.score + ' נק\'</div>' +
+        '<div class="mn-pts">' + r.score + " נק'" + '</div>' +
       '</div>';
     }).join('');
   });
@@ -2008,73 +2096,102 @@ function loadMentalBoard() {
 function openCheckin(type) {
   ciType = type;
   ciAnswers = {};
+  ciQids = questionsFor(type);
   var cfg = CHECKIN_TYPES[type];
   document.getElementById('ci-title').textContent = cfg.title;
   var html = '';
-  cfg.qs.forEach(function(q) {
+  ciQids.forEach(function(qid) {
+    var q = MENTAL_QS[qid];
     html += '<div class="ci-q"><div class="ci-q-label">' + q.label + '</div>';
     if (q.type === 'yn') {
       html += '<div class="ci-opts">' +
-        '<button class="ci-opt" data-q="' + q.id + '" data-v="1" onclick="ciPick(this)">כן</button>' +
-        '<button class="ci-opt" data-q="' + q.id + '" data-v="0" onclick="ciPick(this)">לא</button></div>';
-    } else if (q.type === 'scale') {
+        '<button class="ci-opt" data-q="' + qid + '" data-v="1" onclick="ciPick(this)">כן</button>' +
+        '<button class="ci-opt" data-q="' + qid + '" data-v="0" onclick="ciPick(this)">לא</button></div>';
+    } else if (q.type === 'scale' || q.type === 'hunger') {
       html += '<div class="ci-opts">';
-      for (var v = 1; v <= 5; v++) html += '<button class="ci-opt" data-q="' + q.id + '" data-v="' + v + '" onclick="ciPick(this)">' + v + '</button>';
+      for (var v = 1; v <= 5; v++) html += '<button class="ci-opt" data-q="' + qid + '" data-v="' + v + '" onclick="ciPick(this)">' + v + '</button>';
+      html += '</div>';
+    } else if (q.type === 'choice') {
+      html += '<div class="ci-opts">';
+      q.opts.forEach(function(o) { html += '<button class="ci-opt" data-q="' + qid + '" data-v="' + o + '" onclick="ciPick(this)">' + o + '</button>'; });
       html += '</div>';
     } else {
-      html += '<input class="input-field" type="text" id="ci-text-' + q.id + '" placeholder="כתוב כאן...">';
+      html += '<input class="input-field" type="text" id="ci-text-' + qid + '" placeholder="כתוב כאן...">';
     }
     html += '</div>';
   });
   document.getElementById('ci-questions').innerHTML = html;
+  document.getElementById('ci-save-btn').style.display = 'block';
   document.getElementById('checkin-modal').classList.add('open');
 }
 function closeCheckin() { document.getElementById('checkin-modal').classList.remove('open'); }
 
 function ciPick(btn) {
   var q = btn.dataset.q;
-  ciAnswers[q] = parseInt(btn.dataset.v);
+  var v = btn.dataset.v;
+  ciAnswers[q] = isNaN(parseInt(v)) ? v : parseInt(v);
   var all = document.querySelectorAll('.ci-opt[data-q="' + q + '"]');
   Array.prototype.forEach.call(all, function(b) { b.className = 'ci-opt' + (b === btn ? ' sel' : ''); });
 }
 
 function saveCheckin() {
   var cfg = CHECKIN_TYPES[ciType];
-  var score = 0, answers = {};
-  for (var i = 0; i < cfg.qs.length; i++) {
-    var q = cfg.qs[i];
+  var score = 0, answers = {}, rSum = 0, rCount = 0, weak = [];
+  for (var i = 0; i < ciQids.length; i++) {
+    var qid = ciQids[i], q = MENTAL_QS[qid];
     if (q.type === 'text') {
-      var t = (document.getElementById('ci-text-' + q.id).value || '').trim();
-      answers[q.id] = t;
-      if (t) score += 5;
+      var t = (document.getElementById('ci-text-' + qid).value || '').trim();
+      answers[qid] = t;
+      score += qPoints(q, t);
     } else {
-      if (ciAnswers[q.id] === undefined) { alert('נא לענות על כל השאלות'); return; }
-      answers[q.id] = ciAnswers[q.id];
-      score += q.type === 'yn' ? (ciAnswers[q.id] ? 10 : 0) : ciAnswers[q.id] * 2;
+      if (ciAnswers[qid] === undefined) { alert('נא לענות על כל השאלות'); return; }
+      answers[qid] = ciAnswers[qid];
+      score += qPoints(q, ciAnswers[qid]);
+      var r = qReadiness(q, ciAnswers[qid]);
+      if (r !== null) { rSum += r; rCount++; }
+      if (qIsWeak(q, ciAnswers[qid]) && MENTAL_TIPS[qid]) weak.push(MENTAL_TIPS[qid]);
     }
   }
+  var readiness = rCount ? Math.round(rSum / rCount * 10) : 100;
   var period = cfg.daily ? todayStr() : isoWeek(new Date());
   var docId = currentUser.uid + '_' + ciType + '_' + period;
-  var anon = document.getElementById('mn-anon').checked;
   db.collection('mental').doc(docId).set({
     uid: currentUser.uid,
     name: currentUser.displayName || currentUser.email || 'תלמיד',
-    anon: anon,
+    anon: document.getElementById('mn-anon').checked,
     type: ciType,
+    qids: ciQids,
     date: cfg.daily ? todayStr() : '',
     week: isoWeek(new Date()),
     month: thisMonthStr(),
     score: score,
+    readiness: readiness,
     answers: answers,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
-    closeCheckin();
     loadMyMentalScore();
     loadMentalBoard();
-    if (ciType === 'morning' && (answers.ate === 0 || answers.plan === 0 || answers.mood <= 2)) {
-      alert('🚧 לפי הצ\'ק-אין — היום עדיף לא לסחור, או לסחור קטן במיוחד.\nהמנטליות קודמת לרווח 💚');
-    }
+    showCiResult(score, readiness, weak);
   }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function showCiResult(score, readiness, weak) {
+  var L = lightFor(readiness);
+  var html = '<div style="text-align:center;padding:6px 0 14px">' +
+    '<div style="font-size:44px">' + L.emoji + '</div>' +
+    '<div style="font-size:17px;font-weight:800;margin-top:4px">' + L.title + '</div>' +
+    '<div style="font-size:13px;color:var(--gray-500);margin-top:2px">מוכנות: ' + readiness + "/100 · צברת +" + score + " נק'" + '</div>' +
+    '<div style="font-size:13.5px;font-weight:600;margin-top:8px">' + L.msg + '</div>' +
+  '</div>';
+  if (weak.length) {
+    html += '<div class="lb-title" style="margin-bottom:6px">🎯 מה אפשר לתקן עכשיו:</div>';
+    weak.forEach(function(tip) {
+      html += '<div class="lb-section lb-hw"><div class="lb-text">' + tip + '</div></div>';
+    });
+    html += '<div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">תיקנת? מלא שוב את הצ&#39;ק-אין והרמזור יתעדכן.</div>';
+  }
+  document.getElementById('ci-questions').innerHTML = html;
+  document.getElementById('ci-save-btn').style.display = 'none';
 }
 
 // ============================================================
