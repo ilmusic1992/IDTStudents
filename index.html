@@ -1346,16 +1346,14 @@ function initApp() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, {merge:true});
 
-  if (isAdmin) {
-    document.getElementById('admin-home').style.display = 'block';
-    document.getElementById('fab-add').style.display = 'flex';
-    document.getElementById('lessons-admin-filter').style.display = 'block';
-    document.getElementById('trading-admin-filter').style.display = 'block';
-    loadStudents();
-  } else {
-    document.getElementById('student-home').style.display = 'block';
-    loadStudentHome();
-  }
+  // איפוס מלא של תצוגת תפקידים — חשוב במעבר בין משתמשים בלי רענון
+  document.getElementById('admin-home').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('student-home').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('fab-add').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('lessons-admin-filter').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('trading-admin-filter').style.display = isAdmin ? 'block' : 'none';
+  if (isAdmin) loadStudents();
+  else loadStudentHome();
 
   if (BOOKING_URL) {
     ['booking-btn-lessons','booking-btn-home'].forEach(function(id) {
