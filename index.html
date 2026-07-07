@@ -617,8 +617,18 @@ canvas { width:100% !important; display:block; border-radius:8px; }
             <div class="stat-value green" id="stat-students">0</div>
           </div>
           <div class="stat-card">
+            <div class="stat-label">📅 שיעורים קרובים</div>
+            <div class="stat-value" id="stat-upcoming">0</div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
             <div class="stat-label">שיעורים החודש</div>
             <div class="stat-value" id="stat-month-lessons">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">שיעורים השנה</div>
+            <div class="stat-value" id="stat-year-lessons">0</div>
           </div>
         </div>
         <div class="tx-header">
@@ -628,14 +638,18 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <div id="students-home-list"></div>
       </div>
       <div id="student-home" style="display:none">
-        <div class="stats-grid mt-10">
-          <div class="stat-card">
-            <div class="stat-label">שיעורים סה"כ</div>
-            <div class="stat-value green" id="stat-my-lessons">0</div>
+        <div class="trading-grid mt-10">
+          <div class="trading-card">
+            <div class="t-label">שיעורים שנוצלו</div>
+            <div class="t-val green" id="stat-my-lessons">0</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">שיעור אחרון</div>
-            <div class="stat-value" id="stat-last-lesson" style="font-size:14px;padding-top:4px">—</div>
+          <div class="trading-card">
+            <div class="t-label">נשארו</div>
+            <div class="t-val" id="stat-my-remaining">—</div>
+          </div>
+          <div class="trading-card">
+            <div class="t-label">שיעור אחרון</div>
+            <div class="t-val" id="stat-last-lesson" style="font-size:12px;padding-top:5px">—</div>
           </div>
         </div>
         <a class="booking-btn" id="booking-btn-home" target="_blank" style="display:none;margin-top:10px">📅 קביעת שיעור (דרך אתר הבוילר)</a>
@@ -1446,13 +1460,26 @@ function loadStudents() {
     lessonsWatcherStarted = true;
     db.collection('lessons').onSnapshot(function(snap) {
       lessonStats = {};
+      var today = new Date().toISOString().split('T')[0];
+      var ym = today.slice(0, 7), yy = today.slice(0, 4);
+      var monthCount = 0, yearCount = 0, upcoming = 0;
       snap.forEach(function(doc) {
         var l = doc.data();
+        var d = l.date || '';
+        if (d.slice(0, 7) === ym) monthCount++;
+        if (d.slice(0, 4) === yy) yearCount++;
+        if (d > today) upcoming++;
         if (!l.studentId) return;
         var st = lessonStats[l.studentId] = lessonStats[l.studentId] || {count:0, last:''};
         st.count++;
-        if ((l.date || '') > st.last) st.last = l.date || '';
+        if (d > st.last) st.last = d;
       });
+      var em = document.getElementById('stat-month-lessons');
+      var ey = document.getElementById('stat-year-lessons');
+      var eu = document.getElementById('stat-upcoming');
+      if (em) em.textContent = monthCount;
+      if (ey) ey.textContent = yearCount;
+      if (eu) eu.textContent = upcoming;
       renderStudentsList();
     });
   }
@@ -1593,6 +1620,7 @@ function loadStudentHome() {
     lessons.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
     document.getElementById('stat-my-lessons').textContent = lessons.length;
     document.getElementById('stat-last-lesson').textContent = lessons.length ? lessons[0].date : '—';
+    document.getElementById('stat-my-remaining').textContent = '—';
 
     var html = '';
     lessons.slice(0,3).forEach(function(l, i) { html += lessonCard(l, lessons.length - i); });
@@ -1608,6 +1636,8 @@ function loadStudentHome() {
       var used = lessons.length + (parseInt(u.lessonsOffset) || 0);
       var remaining = total - used;
       var pct = Math.min(100, Math.round(used / total * 100));
+      document.getElementById('stat-my-lessons').textContent = used + '/' + total;
+      document.getElementById('stat-my-remaining').textContent = Math.max(0, remaining);
       document.getElementById('mp-count').textContent = used + ' / ' + total;
       document.getElementById('mp-fill').style.width = pct + '%';
       var msgEl = document.getElementById('mp-msg');
@@ -1645,14 +1675,7 @@ function loadLessons() {
     if (lessons.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; }
     else { list.innerHTML = html; empty.style.display = 'none'; }
 
-    if (isAdmin) {
-      var now = new Date();
-      var monthLessons = lessons.filter(function(l) {
-        var d = new Date(l.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-      document.getElementById('stat-month-lessons').textContent = monthLessons.length;
-    }
+
   });
 }
 
