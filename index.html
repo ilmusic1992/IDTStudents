@@ -363,6 +363,21 @@ body {
 .mn-row.me { background:var(--green-pale); border-radius:8px; padding-right:6px; padding-left:6px; }
 .mn-name { flex:1; font-weight:600; }
 .mn-pts { font-weight:800; color:var(--green-dark); }
+.lib-card {
+  background:var(--white); border:1px solid var(--gray-100); border-radius:var(--radius-sm);
+  margin-bottom:9px; box-shadow:var(--shadow); overflow:hidden; display:flex; gap:11px;
+  align-items:center; padding:10px 12px; cursor:pointer; text-decoration:none; color:var(--black);
+}
+.lib-thumb {
+  width:84px; height:48px; border-radius:7px; object-fit:cover; flex-shrink:0;
+  background:var(--gray-100); display:flex; align-items:center; justify-content:center; font-size:20px;
+}
+.lib-info { flex:1; min-width:0; }
+.lib-title { font-size:13.5px; font-weight:700; margin-bottom:2px; }
+.lib-meta { font-size:11px; color:var(--gray-500); }
+.lib-cat-tag { background:var(--green-light); color:var(--green-dark); border-radius:99px; padding:1px 8px; font-weight:700; font-size:10px; }
+.lib-filter { cursor:pointer; }
+.lib-filter.sel { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
 .ycat-row {
   display:flex; align-items:center; justify-content:space-between;
   padding:9px 0; border-bottom:1px solid var(--gray-100); font-size:13px;
@@ -646,7 +661,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
   <div class="page" id="page-lessons">
     <div class="page-content" style="padding-top:12px">
       <a class="booking-btn" id="booking-btn-lessons" target="_blank" style="display:none">📅 קביעת שיעור (דרך אתר הבוילר)</a>
-      <a class="booking-btn" id="library-btn" target="_blank" style="display:none;background:var(--green-dark)">🎬 ספריית השיעורים שלי</a>
+      <a class="booking-btn" id="library-btn" onclick="showCalc('library')" style="background:var(--green-dark);cursor:pointer">🎬 ספריית השיעורים</a>
       <div id="lessons-admin-filter" style="display:none; margin-bottom:10px">
         <select id="filter-student" onchange="loadLessons()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;">
           <option value="">כל הסטודנטים</option>
@@ -747,6 +762,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <div class="section-title" style="margin-top:0">כלים פנימיים</div>
       <div class="ext-grid" style="margin-bottom:18px">
         <div class="ext-card" onclick="showCalc('mental')" style="border:1.5px solid var(--green)"><div class="ext-icon">🧠</div><div class="ext-name">מאמן מנטלי</div></div>
+        <div class="ext-card" onclick="showCalc('library')"><div class="ext-icon">🎬</div><div class="ext-name">ספריית שיעורים</div></div>
         <div class="ext-card" onclick="showCalc('goal')"><div class="ext-icon">🎯</div><div class="ext-name">מחשבון יעד שנתי</div></div>
         <div class="ext-card" onclick="showCalc('rr')"><div class="ext-icon">📊</div><div class="ext-name">טבלת סיכון/סיכוי</div></div>
         <div class="ext-card" onclick="showCalc('contracts')"><div class="ext-icon">📐</div><div class="ext-name">נקודות / חוזים</div></div>
@@ -797,6 +813,47 @@ canvas { width:100% !important; display:block; border-radius:8px; }
 </div>
 
 <!-- ====== CALC: GOAL ====== -->
+<div class="calc-screen" id="calc-library">
+  <div class="calc-header">
+    <button class="back-btn" onclick="hideCalc()">‹</button>
+    <div class="calc-title">🎬 ספריית השיעורים</div>
+  </div>
+  <div class="calc-content">
+    <button class="tx-add-btn" id="lib-add-btn" onclick="openLibModal()" style="display:none;width:100%;padding:11px;margin-bottom:12px">+ הוספת שיעור לספרייה</button>
+    <div class="ci-opts" id="lib-filters" style="margin-bottom:12px"></div>
+    <div id="lib-list">
+      <div class="tx-empty">אין שיעורים בספרייה עדיין</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="lib-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="lib-modal-title">הוספת שיעור לספרייה</div>
+      <button class="modal-close" onclick="closeLibModal()">✕</button>
+    </div>
+    <div class="input-group">
+      <label class="input-label">שם השיעור</label>
+      <input class="input-field" type="text" id="lb-title" placeholder="למשל: מבוא ל-ICT — חלק 1">
+    </div>
+    <div class="input-group">
+      <label class="input-label">קטגוריה</label>
+      <input class="input-field" type="text" id="lb-cat" list="lib-cats" placeholder="ICT, פסיכולוגיה, בק-טסט...">
+      <datalist id="lib-cats"></datalist>
+    </div>
+    <div class="input-group">
+      <label class="input-label">קישור (יוטיוב או אחר)</label>
+      <input class="input-field" type="url" id="lb-link" placeholder="https://..." style="direction:ltr">
+    </div>
+    <div class="input-group">
+      <label class="input-label">תיאור קצר</label>
+      <input class="input-field" type="text" id="lb-desc" placeholder="מה לומדים בשיעור הזה...">
+    </div>
+    <button class="btn-primary" onclick="saveLibItem()">שמור</button>
+  </div>
+</div>
+
 <div class="calc-screen" id="calc-mental">
   <div class="calc-header">
     <button class="back-btn" onclick="hideCalc()">‹</button>
@@ -1883,6 +1940,107 @@ function saveTradingDebounced() {
 // ============================================================
 // MENTAL COACH
 // ============================================================
+// ============================================================
+// LESSONS LIBRARY
+// ============================================================
+var libItems = [];
+var libFilter = '';
+var editingLibId = null;
+
+function ytThumb(link) {
+  var m = (link || '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? 'https://img.youtube.com/vi/' + m[1] + '/mqdefault.jpg' : null;
+}
+
+function initLibrary() {
+  document.getElementById('lib-add-btn').style.display = isAdmin ? 'block' : 'none';
+  db.collection('library').get().then(function(snap) {
+    libItems = [];
+    snap.forEach(function(doc) { libItems.push(Object.assign({id: doc.id}, doc.data())); });
+    libItems.sort(function(a, b) {
+      var c = (a.category || '').localeCompare(b.category || '');
+      return c !== 0 ? c : (a.title || '').localeCompare(b.title || '');
+    });
+    renderLibrary();
+  });
+}
+
+function renderLibrary() {
+  var cats = [];
+  libItems.forEach(function(it) { if (it.category && cats.indexOf(it.category) < 0) cats.push(it.category); });
+  var fhtml = '<button class="ci-opt lib-filter' + (libFilter === '' ? ' sel' : '') + '" onclick="setLibFilter(\'\')">הכל</button>';
+  cats.forEach(function(c) {
+    fhtml += '<button class="ci-opt lib-filter' + (libFilter === c ? ' sel' : '') + '" onclick="setLibFilter(\'' + c.replace(/'/g, "\\'") + '\')">' + escapeHtmlTx(c) + '</button>';
+  });
+  document.getElementById('lib-filters').innerHTML = fhtml;
+  document.getElementById('lib-cats').innerHTML = cats.map(function(c) { return '<option value="' + escapeHtmlTx(c) + '">'; }).join('');
+
+  var items = libFilter ? libItems.filter(function(it) { return it.category === libFilter; }) : libItems;
+  var list = document.getElementById('lib-list');
+  if (!items.length) {
+    list.innerHTML = '<div class="tx-empty">אין שיעורים בספרייה עדיין</div>';
+    return;
+  }
+  list.innerHTML = items.map(function(it) {
+    var thumb = ytThumb(it.link);
+    var timg = thumb ? '<img class="lib-thumb" src="' + thumb + '" loading="lazy">' : '<div class="lib-thumb">🎬</div>';
+    var adminBtns = isAdmin
+      ? '<button class="tx-del" onclick="event.preventDefault();event.stopPropagation();editLibItem(\'' + it.id + '\')" style="color:var(--gray-500)">✏️</button>' +
+        '<button class="tx-del" onclick="event.preventDefault();event.stopPropagation();deleteLibItem(\'' + it.id + '\')">🗑</button>'
+      : '';
+    return '<a class="lib-card" href="' + encodeURI(it.link || '#') + '" target="_blank">' +
+      timg +
+      '<div class="lib-info">' +
+        '<div class="lib-title">' + escapeHtmlTx(it.title || 'שיעור') + '</div>' +
+        '<div class="lib-meta">' + (it.category ? '<span class="lib-cat-tag">' + escapeHtmlTx(it.category) + '</span> ' : '') + escapeHtmlTx(it.desc || '') + '</div>' +
+      '</div>' + adminBtns +
+    '</a>';
+  }).join('');
+}
+
+function setLibFilter(c) { libFilter = c; renderLibrary(); }
+
+function openLibModal() {
+  editingLibId = null;
+  document.getElementById('lib-modal-title').textContent = 'הוספת שיעור לספרייה';
+  ['lb-title','lb-cat','lb-link','lb-desc'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('lib-modal').classList.add('open');
+}
+function closeLibModal() { document.getElementById('lib-modal').classList.remove('open'); }
+
+function editLibItem(id) {
+  var it = libItems.find(function(x) { return x.id === id; });
+  if (!it) return;
+  editingLibId = id;
+  document.getElementById('lib-modal-title').textContent = 'עריכת שיעור';
+  document.getElementById('lb-title').value = it.title || '';
+  document.getElementById('lb-cat').value = it.category || '';
+  document.getElementById('lb-link').value = it.link || '';
+  document.getElementById('lb-desc').value = it.desc || '';
+  document.getElementById('lib-modal').classList.add('open');
+}
+
+function saveLibItem() {
+  var title = document.getElementById('lb-title').value.trim();
+  var link = document.getElementById('lb-link').value.trim();
+  if (!title || !link) { alert('נא למלא שם וקישור'); return; }
+  var data = {
+    title: title,
+    category: document.getElementById('lb-cat').value.trim() || 'כללי',
+    link: link,
+    desc: document.getElementById('lb-desc').value.trim() || ''
+  };
+  var p = editingLibId
+    ? db.collection('library').doc(editingLibId).set(data, {merge:true})
+    : db.collection('library').add(Object.assign({createdAt: firebase.firestore.FieldValue.serverTimestamp()}, data));
+  p.then(function() { closeLibModal(); initLibrary(); }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function deleteLibItem(id) {
+  if (!confirm('למחוק את השיעור מהספרייה?')) return;
+  db.collection('library').doc(id).delete().then(initLibrary);
+}
+
 var MENTAL_QS = {
   // בוקר
   mood:   {label: 'מה מצב הרוח שלך היום?', type: 'scale'},
@@ -2200,6 +2358,7 @@ function showCiResult(score, readiness, weak) {
 function showCalc(name) {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('calc-' + name).classList.add('active');
+  if (name === 'library') initLibrary();
   if (name === 'mental') initMental();
   if (name === 'goal') calcGoal();
   if (name === 'rr') buildRR();
@@ -2208,7 +2367,7 @@ function showCalc(name) {
 }
 
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc','mental'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental','library'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
