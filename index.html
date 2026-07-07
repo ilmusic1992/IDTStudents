@@ -763,6 +763,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <div class="ext-grid" style="margin-bottom:18px">
         <div class="ext-card" onclick="showCalc('mental')" style="border:1.5px solid var(--green)"><div class="ext-icon">🧠</div><div class="ext-name">מאמן מנטלי</div></div>
         <div class="ext-card" onclick="showCalc('library')"><div class="ext-icon">🎬</div><div class="ext-name">ספריית שיעורים</div></div>
+        <div class="ext-card" onclick="showCalc('indicators')"><div class="ext-icon">📈</div><div class="ext-name">האינדיקטורים של IDT</div></div>
         <div class="ext-card" onclick="showCalc('goal')"><div class="ext-icon">🎯</div><div class="ext-name">מחשבון יעד שנתי</div></div>
         <div class="ext-card" onclick="showCalc('rr')"><div class="ext-icon">📊</div><div class="ext-name">טבלת סיכון/סיכוי</div></div>
         <div class="ext-card" onclick="showCalc('contracts')"><div class="ext-icon">📐</div><div class="ext-name">נקודות / חוזים</div></div>
@@ -813,6 +814,61 @@ canvas { width:100% !important; display:block; border-radius:8px; }
 </div>
 
 <!-- ====== CALC: GOAL ====== -->
+<div class="calc-screen" id="calc-indicators">
+  <div class="calc-header">
+    <button class="back-btn" onclick="hideCalc()">‹</button>
+    <div class="calc-title">📈 האינדיקטורים של IDT</div>
+  </div>
+  <div class="calc-content">
+    <button class="tx-add-btn" id="ind-add-btn" onclick="openIndModal()" style="display:none;width:100%;padding:11px;margin-bottom:12px">+ הוספת אינדיקטור</button>
+    <div id="ind-list">
+      <div class="tx-empty">אין אינדיקטורים עדיין</div>
+    </div>
+    <div id="ind-access-student" style="display:none">
+      <div class="section-title">🔑 בקשת גישה</div>
+      <div class="card">
+        <div id="ind-status-msg" style="display:none;font-size:13.5px;font-weight:700;margin-bottom:10px"></div>
+        <div id="ind-request-form">
+          <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:10px">האינדיקטורים הם Invite-Only — שלח את שם המשתמש שלך ב-TradingView ואיתמר יפתח לך גישה.</div>
+          <div class="input-group">
+            <label class="input-label">שם משתמש ב-TradingView</label>
+            <input class="input-field" type="text" id="ind-tvuser" placeholder="username" style="direction:ltr">
+          </div>
+          <button class="btn-primary" onclick="requestTvAccess()">שלח בקשת גישה</button>
+        </div>
+      </div>
+    </div>
+    <div id="ind-access-admin" style="display:none">
+      <div class="section-title">🔑 בקשות גישה</div>
+      <div class="card" id="ind-requests" style="padding:6px 14px">
+        <div class="ycat-row" style="border:none;color:var(--gray-500)">אין בקשות</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ind-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="ind-modal-title">הוספת אינדיקטור</div>
+      <button class="modal-close" onclick="closeIndModal()">✕</button>
+    </div>
+    <div class="input-group">
+      <label class="input-label">שם האינדיקטור</label>
+      <input class="input-field" type="text" id="in-title" placeholder="IDT Order Flow...">
+    </div>
+    <div class="input-group">
+      <label class="input-label">תיאור קצר</label>
+      <input class="input-field" type="text" id="in-desc" placeholder="מה האינדיקטור עושה...">
+    </div>
+    <div class="input-group">
+      <label class="input-label">קישור לסקריפט ב-TradingView (אופציונלי)</label>
+      <input class="input-field" type="url" id="in-link" placeholder="https://www.tradingview.com/script/..." style="direction:ltr">
+    </div>
+    <button class="btn-primary" onclick="saveIndItem()">שמור</button>
+  </div>
+</div>
+
 <div class="calc-screen" id="calc-library">
   <div class="calc-header">
     <button class="back-btn" onclick="hideCalc()">‹</button>
@@ -1941,6 +1997,155 @@ function saveTradingDebounced() {
 // MENTAL COACH
 // ============================================================
 // ============================================================
+// TRADINGVIEW INDICATORS
+// ============================================================
+var indItems = [];
+var editingIndId = null;
+
+function initIndicators() {
+  document.getElementById('ind-add-btn').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('ind-access-student').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('ind-access-admin').style.display = isAdmin ? 'block' : 'none';
+  db.collection('indicators').get().then(function(snap) {
+    indItems = [];
+    snap.forEach(function(doc) { indItems.push(Object.assign({id: doc.id}, doc.data())); });
+    indItems.sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
+    renderIndicators();
+  });
+  if (isAdmin) loadTvRequests();
+  else loadMyTvStatus();
+}
+
+function renderIndicators() {
+  var list = document.getElementById('ind-list');
+  if (!indItems.length) {
+    list.innerHTML = '<div class="tx-empty">אין אינדיקטורים עדיין</div>';
+    return;
+  }
+  list.innerHTML = indItems.map(function(it) {
+    var adminBtns = isAdmin
+      ? '<button class="tx-del" onclick="event.preventDefault();event.stopPropagation();editIndItem(\'' + it.id + '\')" style="color:var(--gray-500)">✏️</button>' +
+        '<button class="tx-del" onclick="event.preventDefault();event.stopPropagation();deleteIndItem(\'' + it.id + '\')">🗑</button>'
+      : '';
+    var inner = '<div class="lib-thumb">📈</div>' +
+      '<div class="lib-info">' +
+        '<div class="lib-title">' + escapeHtmlTx(it.title || 'אינדיקטור') + '</div>' +
+        '<div class="lib-meta">' + escapeHtmlTx(it.desc || '') + '</div>' +
+      '</div>' + adminBtns;
+    if (it.link) return '<a class="lib-card" href="' + encodeURI(it.link) + '" target="_blank">' + inner + '</a>';
+    return '<div class="lib-card" style="cursor:default">' + inner + '</div>';
+  }).join('');
+}
+
+function openIndModal() {
+  editingIndId = null;
+  document.getElementById('ind-modal-title').textContent = 'הוספת אינדיקטור';
+  ['in-title','in-desc','in-link'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('ind-modal').classList.add('open');
+}
+function closeIndModal() { document.getElementById('ind-modal').classList.remove('open'); }
+
+function editIndItem(id) {
+  var it = indItems.find(function(x) { return x.id === id; });
+  if (!it) return;
+  editingIndId = id;
+  document.getElementById('ind-modal-title').textContent = 'עריכת אינדיקטור';
+  document.getElementById('in-title').value = it.title || '';
+  document.getElementById('in-desc').value = it.desc || '';
+  document.getElementById('in-link').value = it.link || '';
+  document.getElementById('ind-modal').classList.add('open');
+}
+
+function saveIndItem() {
+  var title = document.getElementById('in-title').value.trim();
+  if (!title) { alert('נא למלא שם'); return; }
+  var data = {
+    title: title,
+    desc: document.getElementById('in-desc').value.trim() || '',
+    link: document.getElementById('in-link').value.trim() || ''
+  };
+  var p = editingIndId
+    ? db.collection('indicators').doc(editingIndId).set(data, {merge:true})
+    : db.collection('indicators').add(Object.assign({createdAt: firebase.firestore.FieldValue.serverTimestamp()}, data));
+  p.then(function() { closeIndModal(); initIndicators(); }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function deleteIndItem(id) {
+  if (!confirm('למחוק את האינדיקטור?')) return;
+  db.collection('indicators').doc(id).delete().then(initIndicators);
+}
+
+function loadMyTvStatus() {
+  db.collection('tvAccess').doc(currentUser.uid).get().then(function(doc) {
+    var msg = document.getElementById('ind-status-msg');
+    var form = document.getElementById('ind-request-form');
+    if (doc.exists) {
+      var d = doc.data();
+      document.getElementById('ind-tvuser').value = d.tvUsername || '';
+      if (d.status === 'approved') {
+        msg.innerHTML = '✅ הגישה שלך אושרה! פתח את TradingView ← Indicators ← Invite-only scripts';
+        msg.style.color = 'var(--green-dark)';
+        msg.style.display = 'block';
+        form.style.display = 'none';
+      } else {
+        msg.innerHTML = '⏳ הבקשה שלך (' + escapeHtmlTx(d.tvUsername || '') + ') ממתינה לאישור';
+        msg.style.color = '#b45309';
+        msg.style.display = 'block';
+        form.style.display = 'block';
+      }
+    } else {
+      msg.style.display = 'none';
+      form.style.display = 'block';
+      db.collection('users').doc(currentUser.uid).get().then(function(u) {
+        if (u.exists && u.data().tvUsername) document.getElementById('ind-tvuser').value = u.data().tvUsername;
+      });
+    }
+  });
+}
+
+function requestTvAccess() {
+  var tvu = document.getElementById('ind-tvuser').value.trim();
+  if (!tvu) { alert('נא להזין שם משתמש ב-TradingView'); return; }
+  db.collection('tvAccess').doc(currentUser.uid).set({
+    uid: currentUser.uid,
+    name: currentUser.displayName || currentUser.email || 'תלמיד',
+    tvUsername: tvu,
+    status: 'pending',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, {merge:true}).then(function() {
+    db.collection('users').doc(currentUser.uid).set({tvUsername: tvu}, {merge:true});
+    loadMyTvStatus();
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function loadTvRequests() {
+  db.collection('tvAccess').get().then(function(snap) {
+    var reqs = [];
+    snap.forEach(function(doc) { reqs.push(doc.data()); });
+    reqs.sort(function(a, b) { return (a.status || '').localeCompare(b.status || ''); });
+    var box = document.getElementById('ind-requests');
+    if (!reqs.length) {
+      box.innerHTML = '<div class="ycat-row" style="border:none;color:var(--gray-500)">אין בקשות</div>';
+      return;
+    }
+    box.innerHTML = reqs.map(function(r) {
+      var pending = r.status !== 'approved';
+      return '<div class="ycat-row">' +
+        '<span class="ycat-name">' + escapeHtmlTx(r.name || '') + ' · <span style="direction:ltr;unicode-bidi:embed;font-family:monospace">' + escapeHtmlTx(r.tvUsername || '') + '</span></span>' +
+        '<span>' + (pending
+          ? '<button class="tx-add-btn" style="padding:5px 10px;font-size:11.5px" onclick="approveTv(\'' + r.uid + '\')">סמן כאושר ✓</button>'
+          : '<span class="s-badge done">אושר</span>') +
+        '</span>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+function approveTv(uid) {
+  db.collection('tvAccess').doc(uid).set({status: 'approved', updatedAt: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}).then(loadTvRequests);
+}
+
+// ============================================================
 // LESSONS LIBRARY
 // ============================================================
 var libItems = [];
@@ -2358,6 +2563,7 @@ function showCiResult(score, readiness, weak) {
 function showCalc(name) {
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('calc-' + name).classList.add('active');
+  if (name === 'indicators') initIndicators();
   if (name === 'library') initLibrary();
   if (name === 'mental') initMental();
   if (name === 'goal') calcGoal();
@@ -2367,7 +2573,7 @@ function showCalc(name) {
 }
 
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc','mental','library'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
