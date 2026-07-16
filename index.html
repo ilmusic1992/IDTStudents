@@ -395,6 +395,7 @@ body {
 .s-badge.warn { background:var(--red-light); color:var(--red); }
 .s-badge.stale { background:#fef3c7; color:#b45309; }
 .s-badge.done { background:var(--green-light); color:var(--green-dark); }
+.s-badge.manual { background:var(--gray-100); color:var(--gray-500); }
 .admin-alert {
   display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
   padding:10px 13px; border-radius:var(--radius-sm); margin-bottom:7px;
@@ -633,7 +634,10 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         </div>
         <div class="tx-header">
           <div class="section-title" style="margin:0">הסטודנטים שלי</div>
-          <button class="tx-add-btn" style="background:var(--gray-900)" onclick="emailAllStudents()">✉️ מייל לכולם</button>
+          <div style="display:flex;gap:6px">
+            <button class="tx-add-btn" onclick="openNewStudentModal()">+ תלמיד</button>
+            <button class="tx-add-btn" style="background:var(--gray-900)" onclick="emailAllStudents()">✉️ מייל לכולם</button>
+          </div>
         </div>
         <div id="students-home-list"></div>
       </div>
@@ -1156,6 +1160,16 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <button class="modal-close" onclick="closeStudentModal()">✕</button>
     </div>
     <div id="sm-lessons-info" style="font-size:13px;font-weight:600;color:var(--green-dark);margin-bottom:14px"></div>
+    <div id="sm-identity" style="display:none">
+      <div class="input-group">
+        <label class="input-label">שם התלמיד</label>
+        <input class="input-field" type="text" id="e-name" placeholder="שם מלא">
+      </div>
+      <div class="input-group">
+        <label class="input-label">אימייל (אופציונלי)</label>
+        <input class="input-field" type="email" id="e-email" placeholder="email@..." style="direction:ltr">
+      </div>
+    </div>
     <div class="input-group">
       <label class="input-label">כינוי פנימי (רק אתה רואה)</label>
       <input class="input-field" type="text" id="e-nickname" placeholder="למשל: דני מחזור 3">
@@ -1210,6 +1224,14 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <input type="checkbox" id="e-archived" style="width:17px;height:17px;accent-color:var(--green)">
       העבר לארכיון (לא יופיע בדשבורד, עדיין יוכל להתחבר)
     </label>
+    <div id="sm-link-section" style="display:none;background:var(--green-pale);border:1px solid var(--green-light);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:800;margin-bottom:6px">🔗 קישור לחשבון רשום</div>
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:10px">כשהתלמיד נרשם לאפליקציה, בחר את החשבון שלו — וכל הנתונים (פרטים, שיעורים, מסחר) יעברו אליו.</div>
+      <select id="sm-link-select" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);margin-bottom:10px">
+        <option value="">בחר חשבון רשום...</option>
+      </select>
+      <button class="tx-add-btn" style="width:100%;padding:10px" onclick="linkManualStudent()">קשר והעבר נתונים</button>
+    </div>
     <button class="btn-primary" onclick="saveStudent()">שמור פרטים</button>
   </div>
 </div>
@@ -1510,6 +1532,7 @@ function renderStudentsList() {
     } else if (st.last && daysSince(st.last) > 14) {
       badge = ' <span class="s-badge stale">לא קבע שיעור</span>';
     }
+    if (s.manual) badge = ' <span class="s-badge manual">ידני</span>' + badge;
     var meta = [];
     if (s.cohort) meta.push('מחזור ' + s.cohort);
     if (s.studentType) meta.push(s.studentType);
@@ -1551,11 +1574,43 @@ function renderAdminAlerts(active) {
 }
 
 var editingStudentId = null;
+var creatingStudent = false;
+
+function openNewStudentModal() {
+  creatingStudent = true;
+  editingStudentId = null;
+  document.getElementById('sm-title').textContent = 'תלמיד ידני חדש';
+  document.getElementById('sm-lessons-info').textContent = 'תלמיד שלא נרשם לאפליקציה — תוכל לנהל עליו הכל, ולקשר אותו לחשבון אמיתי כשיירשם.';
+  document.getElementById('sm-identity').style.display = 'block';
+  document.getElementById('sm-link-section').style.display = 'none';
+  ['e-name','e-email','e-nickname','e-cohort','e-total','e-offset','e-expiry','e-phone','e-age','e-occupation','e-about'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('e-type').value = '';
+  document.getElementById('e-archived').checked = false;
+  document.getElementById('student-modal').classList.add('open');
+}
+
 function openStudentModal(id) {
   var st0 = allStudents.find(function(x) { return x.id === id; });
   if (!st0) return;
+  creatingStudent = false;
   editingStudentId = id;
-  document.getElementById('sm-title').textContent = st0.name || st0.email || 'פרטי תלמיד';
+  document.getElementById('sm-title').textContent = (st0.name || st0.email || 'פרטי תלמיד') + (st0.manual ? ' · ידני' : '');
+  document.getElementById('sm-identity').style.display = st0.manual ? 'block' : 'none';
+  document.getElementById('e-name').value = st0.name || '';
+  document.getElementById('e-email').value = st0.email || '';
+  var linkSec = document.getElementById('sm-link-section');
+  if (st0.manual) {
+    linkSec.style.display = 'block';
+    var opts = '<option value="">בחר חשבון רשום...</option>';
+    allStudents.filter(function(x) { return !x.manual && x.id !== id; }).forEach(function(x) {
+      opts += '<option value="' + x.id + '">' + escapeHtmlTx((x.name || '') + ' (' + (x.email || '') + ')') + '</option>';
+    });
+    document.getElementById('sm-link-select').innerHTML = opts;
+  } else {
+    linkSec.style.display = 'none';
+  }
   document.getElementById('e-nickname').value = st0.nickname || '';
   document.getElementById('e-cohort').value = st0.cohort || '';
   document.getElementById('e-type').value = st0.studentType || '';
@@ -1574,8 +1629,37 @@ function openStudentModal(id) {
 function closeStudentModal() { document.getElementById('student-modal').classList.remove('open'); }
 
 function saveStudent() {
+  if (creatingStudent) {
+    var nm = document.getElementById('e-name').value.trim();
+    if (!nm) { alert('נא למלא שם'); return; }
+    db.collection('users').add({
+      name: nm,
+      email: document.getElementById('e-email').value.trim(),
+      role: 'student',
+      manual: true,
+      nickname: document.getElementById('e-nickname').value.trim(),
+      cohort: document.getElementById('e-cohort').value.trim(),
+      studentType: document.getElementById('e-type').value,
+      totalLessons: parseInt(document.getElementById('e-total').value) || 0,
+      lessonsOffset: parseInt(document.getElementById('e-offset').value) || 0,
+      expiry: document.getElementById('e-expiry').value || '',
+      phone: document.getElementById('e-phone').value.trim(),
+      age: parseInt(document.getElementById('e-age').value) || null,
+      occupation: document.getElementById('e-occupation').value.trim(),
+      about: document.getElementById('e-about').value.trim(),
+      archived: document.getElementById('e-archived').checked,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() { creatingStudent = false; closeStudentModal(); }).catch(function(e) { alert('שגיאה: ' + e.message); });
+    return;
+  }
   if (!editingStudentId) return;
-  db.collection('users').doc(editingStudentId).set({
+  var st0 = allStudents.find(function(x) { return x.id === editingStudentId; });
+  var extra = {};
+  if (st0 && st0.manual) {
+    extra.name = document.getElementById('e-name').value.trim() || st0.name;
+    extra.email = document.getElementById('e-email').value.trim();
+  }
+  db.collection('users').doc(editingStudentId).set(Object.assign(extra, {
     nickname: document.getElementById('e-nickname').value.trim(),
     cohort: document.getElementById('e-cohort').value.trim(),
     studentType: document.getElementById('e-type').value,
@@ -1588,7 +1672,46 @@ function saveStudent() {
     about: document.getElementById('e-about').value.trim(),
     archived: document.getElementById('e-archived').checked,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, {merge:true}).then(closeStudentModal).catch(function(e) { alert('שגיאה: ' + e.message); });
+  }), {merge:true}).then(closeStudentModal).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function linkManualStudent() {
+  var manualId = editingStudentId;
+  var targetId = document.getElementById('sm-link-select').value;
+  if (!targetId) { alert('בחר חשבון רשום'); return; }
+  var m = allStudents.find(function(x) { return x.id === manualId; });
+  var t = allStudents.find(function(x) { return x.id === targetId; });
+  if (!m || !t) return;
+  if (!confirm('להעביר את כל הנתונים של "' + adminName(m) + '" לחשבון ' + (t.name || t.email) + '? הכרטיס הידני יימחק.')) return;
+
+  var fields = {};
+  ['nickname','cohort','studentType','totalLessons','lessonsOffset','expiry','phone','age','occupation','about'].forEach(function(k) {
+    if (m[k] !== undefined && m[k] !== null && m[k] !== '' && m[k] !== 0) fields[k] = m[k];
+  });
+  fields.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+  var ps = [];
+  ps.push(db.collection('users').doc(targetId).set(fields, {merge:true}));
+  ps.push(db.collection('lessons').where('studentId', '==', manualId).get().then(function(snap) {
+    var ups = [];
+    snap.forEach(function(d) { ups.push(d.ref.update({studentId: targetId, studentName: t.name || t.email || ''})); });
+    return Promise.all(ups);
+  }));
+  ['monthly', 'tx'].forEach(function(col) {
+    ps.push(db.collection('trading').doc(manualId).collection(col).get().then(function(snap) {
+      var ops = [];
+      snap.forEach(function(d) {
+        ops.push(db.collection('trading').doc(targetId).collection(col).doc(d.id).set(d.data(), {merge:true}).then(function() { return d.ref.delete(); }));
+      });
+      return Promise.all(ops);
+    }));
+  });
+  Promise.all(ps).then(function() {
+    return db.collection('users').doc(manualId).delete();
+  }).then(function() {
+    closeStudentModal();
+    alert('✅ הקישור הושלם — כל הנתונים עברו לחשבון הרשום');
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
 }
 
 function emailAllStudents() {
