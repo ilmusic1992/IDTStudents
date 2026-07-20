@@ -267,11 +267,7 @@
   $('pass').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginBtn').click(); });
 
   // יציאה
-  $('logoutBtn').addEventListener('click', async ()=>{
-    if(auth) await auth.signOut();
-    readerView.hidden=true; loginView.hidden=false;
-    $('pass').value=''; msg("");
-  });
+  $('logoutBtn').addEventListener('click', ()=>{ window.location.href='index.html'; });
 
   // שמירת מצב חיבור
   if(auth){
