@@ -634,7 +634,8 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         </div>
         <div class="tx-header">
           <div class="section-title" style="margin:0">הסטודנטים שלי</div>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="tx-add-btn" onclick="openBookingModal()" style="background:var(--gray-700)">📥 ייבוא הזמנה</button>
             <button class="tx-add-btn" onclick="openNewStudentModal()">+ תלמיד</button>
             <button class="tx-add-btn" style="background:var(--gray-900)" onclick="emailAllStudents()">✉️ מייל לכולם</button>
           </div>
@@ -1153,6 +1154,52 @@ canvas { width:100% !important; display:block; border-radius:8px; }
   </div>
 </div>
 
+<!-- ====== BOOKING IMPORT MODAL ====== -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📥 ייבוא הזמנה מהמייל</div>
+      <button class="modal-close" onclick="closeBookingModal()">✕</button>
+    </div>
+    <div class="input-group">
+      <label class="input-label">הדבק את מייל ההזמנה</label>
+      <textarea class="input-field" id="bk-paste" rows="4" placeholder="העתק את כל תוכן מייל האישור מהבוילר והדבק כאן..." style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <button class="tx-add-btn" style="width:100%;padding:10px;margin-bottom:14px;background:var(--gray-700)" onclick="parseBooking()">🔍 זהה פרטים אוטומטית</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="input-group">
+        <label class="input-label">שם התלמיד</label>
+        <input class="input-field" type="text" id="bk-name" placeholder="שם">
+      </div>
+      <div class="input-group">
+        <label class="input-label">אימייל</label>
+        <input class="input-field" type="email" id="bk-email" placeholder="email@..." style="direction:ltr">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="input-group">
+        <label class="input-label">תאריך השיעור</label>
+        <input class="input-field" type="date" id="bk-date" style="direction:ltr">
+      </div>
+      <div class="input-group">
+        <label class="input-label">שעה</label>
+        <input class="input-field" type="text" id="bk-time" placeholder="16:00" style="direction:ltr">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="input-group">
+        <label class="input-label">טלפון</label>
+        <input class="input-field" type="tel" id="bk-phone" placeholder="+972..." style="direction:ltr">
+      </div>
+      <div class="input-group">
+        <label class="input-label">נושא (אופציונלי)</label>
+        <input class="input-field" type="text" id="bk-topic" placeholder="שיעור מהבוילר">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveBooking()">קבע שיעור</button>
+  </div>
+</div>
+
 <!-- ====== STUDENT EDIT MODAL ====== -->
 <div class="modal-overlay" id="student-modal">
   <div class="modal">
@@ -1238,6 +1285,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <button class="tx-add-btn" style="width:100%;padding:10px" onclick="linkManualStudent()">קשר והעבר נתונים</button>
     </div>
     <button class="btn-primary" onclick="saveStudent()">שמור פרטים</button>
+    <button id="sm-delete-btn" onclick="deleteStudent()" style="width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--red);background:var(--red-light);color:var(--red);border-radius:10px;font-family:Heebo,sans-serif;font-size:14px;font-weight:700;cursor:pointer">🗑 מחיקת תלמיד וחסימת גישה</button>
   </div>
 </div>
 
@@ -1381,11 +1429,18 @@ function initApp() {
   var now = new Date();
   document.getElementById('g-date').textContent = 'יום ' + days[now.getDay()] + ', ' + now.getDate() + ' ב' + months[now.getMonth()];
 
-  db.collection('users').doc(currentUser.uid).set({
-    name: name, email: currentUser.email,
-    role: isAdmin ? 'admin' : 'student',
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, {merge:true});
+  db.collection('users').doc(currentUser.uid).get().then(function(gdoc) {
+    if (gdoc.exists && gdoc.data().blocked) {
+      alert('⛔ הגישה שלך למערכת נחסמה. לפרטים פנה לאיתמר.');
+      auth.signOut();
+      return;
+    }
+    db.collection('users').doc(currentUser.uid).set({
+      name: name, email: currentUser.email,
+      role: isAdmin ? 'admin' : 'student',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+  });
 
   // איפוס מלא של תצוגת תפקידים — חשוב במעבר בין משתמשים בלי רענון
   document.getElementById('admin-home').style.display = isAdmin ? 'block' : 'none';
@@ -1430,6 +1485,7 @@ function showPage(p) {
 // STUDENTS
 // ============================================================
 var lessonStats = {};
+var allLessonsAdmin = [];
 var lessonsWatcherStarted = false;
 
 function adminName(s) { return s.nickname || s.name || s.email || '?'; }
@@ -1487,11 +1543,13 @@ function loadStudents() {
     lessonsWatcherStarted = true;
     db.collection('lessons').onSnapshot(function(snap) {
       lessonStats = {};
+      allLessonsAdmin = [];
       var today = new Date().toISOString().split('T')[0];
       var ym = today.slice(0, 7), yy = today.slice(0, 4);
       var monthCount = 0, yearCount = 0, upcoming = 0;
       snap.forEach(function(doc) {
         var l = doc.data();
+        allLessonsAdmin.push(Object.assign({id: doc.id}, l));
         var d = l.date || '';
         if (d.slice(0, 7) === ym) monthCount++;
         if (d.slice(0, 4) === yy) yearCount++;
@@ -1573,6 +1631,15 @@ function renderAdminAlerts(active) {
     else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים'});
     else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים'});
   });
+  var today = new Date().toISOString().split('T')[0];
+  allLessonsAdmin.forEach(function(l) {
+    if (!l.date) return;
+    if (l.date === today) {
+      alerts.unshift({cls: 'done', txt: '📅 היום: שיעור עם ' + (l.studentName || '') + (l.notes ? ' · ' + l.notes : '')});
+    } else if (l.date < today && !l.summaryFull && daysSince(l.date) <= 14) {
+      alerts.push({cls: 'stale', txt: '📝 ממתין לסיכום: ' + (l.studentName || '') + ' · ' + l.date});
+    }
+  });
   el.innerHTML = alerts.map(function(a) {
     return '<div class="admin-alert ' + a.cls + '">' + escapeHtmlTx(a.txt) + '</div>';
   }).join('');
@@ -1594,6 +1661,7 @@ function openNewStudentModal() {
   document.getElementById('e-type').value = '';
   document.getElementById('e-archived').checked = false;
   document.getElementById('e-booklet').checked = false;
+  document.getElementById('sm-delete-btn').style.display = 'none';
   document.getElementById('student-modal').classList.add('open');
 }
 
@@ -1629,6 +1697,7 @@ function openStudentModal(id) {
   document.getElementById('e-about').value = st0.about || '';
   document.getElementById('e-archived').checked = !!st0.archived;
   document.getElementById('e-booklet').checked = st0.bookletAccess === 'yes';
+  document.getElementById('sm-delete-btn').style.display = 'block';
   var st = lessonStats[id] || {count:0};
   document.getElementById('sm-lessons-info').textContent = 'ניצל ' + usedLessons(st0, st) + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '') + (st0.expiry ? ' · תוקף עד ' + st0.expiry : '');
   document.getElementById('student-modal').classList.add('open');
@@ -1720,6 +1789,141 @@ function linkManualStudent() {
   }).then(function() {
     closeStudentModal();
     alert('✅ הקישור הושלם — כל הנתונים עברו לחשבון הרשום');
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+function deleteStudent() {
+  var s0 = allStudents.find(function(x) { return x.id === editingStudentId; });
+  if (!s0) return;
+  var warn = 'למחוק את "' + adminName(s0) + '"?\n\nכל השיעורים, נתוני המסחר והצ\'ק-אינים שלו יימחקו לצמיתות' +
+    (s0.manual ? '.' : ',\nוהחשבון שלו ייחסם מכניסה למערכת.') + '\n\nאי אפשר לבטל את הפעולה!';
+  if (!confirm(warn)) return;
+  var uid = editingStudentId;
+  var ps = [];
+  ps.push(db.collection('lessons').where('studentId', '==', uid).get().then(function(snap) {
+    var d = []; snap.forEach(function(x) { d.push(x.ref.delete()); }); return Promise.all(d);
+  }));
+  ['monthly', 'tx'].forEach(function(col) {
+    ps.push(db.collection('trading').doc(uid).collection(col).get().then(function(snap) {
+      var d = []; snap.forEach(function(x) { d.push(x.ref.delete()); }); return Promise.all(d);
+    }));
+  });
+  ps.push(db.collection('mental').where('uid', '==', uid).get().then(function(snap) {
+    var d = []; snap.forEach(function(x) { d.push(x.ref.delete()); }); return Promise.all(d);
+  }));
+  ps.push(db.collection('tvAccess').doc(uid).delete().catch(function() {}));
+  Promise.all(ps).then(function() {
+    if (s0.manual) return db.collection('users').doc(uid).delete();
+    return db.collection('users').doc(uid).set({
+      blocked: true, role: 'blocked',
+      name: s0.name || '', email: s0.email || '',
+      blockedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).then(function() {
+    closeStudentModal();
+    alert(s0.manual ? '✅ התלמיד נמחק' : '✅ התלמיד נמחק והחשבון נחסם');
+  }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+// ============================================================
+// BOOKING IMPORT (מייל הזמנה מהבוילר)
+// ============================================================
+function openBookingModal() {
+  ['bk-paste','bk-name','bk-email','bk-date','bk-time','bk-topic','bk-phone'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('booking-modal').classList.add('open');
+}
+function closeBookingModal() { document.getElementById('booking-modal').classList.remove('open'); }
+
+function parseBooking() {
+  var t = document.getElementById('bk-paste').value;
+  if (!t.trim()) { alert('הדבק קודם את תוכן המייל'); return; }
+  var lines = t.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+
+  // אימייל
+  var em = t.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  if (em) document.getElementById('bk-email').value = em[0].toLowerCase();
+
+  // טלפון
+  var ph = t.match(/\+?9725\d{8}|05\d[- ]?\d{7}/);
+  if (ph) document.getElementById('bk-phone').value = ph[0];
+
+  // שם — השורה שאחרי התווית Name (פורמט המייל של הבוילר/Wix)
+  for (var i = 0; i < lines.length - 1; i++) {
+    if (/^:?\s*Name\s*:?$/i.test(lines[i])) {
+      document.getElementById('bk-name').value = lines[i + 1].replace(/[:]/g, '').trim();
+      break;
+    }
+  }
+  if (!document.getElementById('bk-name').value) {
+    for (var j = 0; j < lines.length; j++) {
+      var l = lines[j];
+      if (l.length > 1 && l.length < 40 && l.indexOf('@') < 0 && !/\d{2}/.test(l) && !/הזמנה|אישור|booking|שיעור|תודה|details|clients/i.test(l)) {
+        document.getElementById('bk-name').value = l;
+        break;
+      }
+    }
+  }
+
+  // תאריך — "27 ביולי 2026" או 27/07/2026 או ISO
+  var months = {'ינואר':1,'פברואר':2,'מרץ':3,'אפריל':4,'מאי':5,'יוני':6,'יולי':7,'אוגוסט':8,'ספטמבר':9,'אוקטובר':10,'נובמבר':11,'דצמבר':12};
+  var hm = t.match(/(\d{1,2})\s+ב?(ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)\s+(\d{4})/);
+  if (hm) {
+    document.getElementById('bk-date').value = hm[3] + '-' + String(months[hm[2]]).padStart(2, '0') + '-' + hm[1].padStart(2, '0');
+  } else {
+    var dm = t.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+    if (dm) {
+      var yy = dm[3].length === 2 ? '20' + dm[3] : dm[3];
+      document.getElementById('bk-date').value = yy + '-' + dm[2].padStart(2, '0') + '-' + dm[1].padStart(2, '0');
+    } else {
+      var iso = t.match(/(20\d{2})-(\d{2})-(\d{2})/);
+      if (iso) document.getElementById('bk-date').value = iso[0];
+    }
+  }
+
+  // שעה — "בשעה 12:00"
+  var tm = t.match(/(\d{1,2}):(\d{2})/);
+  if (tm) document.getElementById('bk-time').value = tm[0];
+}
+
+function saveBooking() {
+  var email = document.getElementById('bk-email').value.trim().toLowerCase();
+  var name = document.getElementById('bk-name').value.trim();
+  var date = document.getElementById('bk-date').value;
+  var time = document.getElementById('bk-time').value.trim();
+  var topic = document.getElementById('bk-topic').value.trim();
+  if (!date) { alert('נא למלא תאריך'); return; }
+  if (!email && !name) { alert('נא למלא אימייל או שם'); return; }
+
+  var existing = allStudents.find(function(x) { return email && (x.email || '').toLowerCase() === email; });
+  var sidPromise;
+  if (existing) {
+    sidPromise = Promise.resolve({id: existing.id, name: adminName(existing)});
+  } else {
+    sidPromise = db.collection('users').add({
+      name: name || email,
+      email: email,
+      phone: document.getElementById('bk-phone').value.trim(),
+      role: 'student',
+      manual: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(ref) { return {id: ref.id, name: name || email}; });
+  }
+  sidPromise.then(function(st) {
+    return db.collection('lessons').add({
+      studentId: st.id,
+      studentName: st.name,
+      date: date,
+      topic: topic || 'שיעור (נקבע דרך הבוילר)',
+      notes: time ? 'שעה ' + time : '',
+      booked: true,
+      mentorId: currentUser.uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() { return st; });
+  }).then(function(st) {
+    closeBookingModal();
+    alert('✅ השיעור נקבע ל־' + st.name + (existing ? ' (תלמיד קיים)' : ' (נפתח תלמיד ידני חדש)'));
   }).catch(function(e) { alert('שגיאה: ' + e.message); });
 }
 
