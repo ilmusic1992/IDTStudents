@@ -403,6 +403,13 @@ body {
 .admin-alert.warn { background:var(--red-light); color:var(--red); }
 .admin-alert.stale { background:#fef3c7; color:#b45309; }
 .admin-alert.done { background:var(--green-light); color:var(--green-dark); }
+.admin-alert { justify-content:space-between; }
+.alert-dismiss {
+  border:none; background:rgba(255,255,255,.65); border-radius:99px;
+  width:24px; height:24px; cursor:pointer; font-size:12px; font-weight:800;
+  flex-shrink:0; color:inherit; display:flex; align-items:center; justify-content:center;
+}
+.alert-dismiss:hover { background:var(--white); }
 .t-val.green { color:var(--green); }
 .t-val.red { color:var(--red); }
 
@@ -1522,6 +1529,7 @@ function paceStatus(s, st) {
 }
 
 function loadStudents() {
+  loadDismissedAlerts();
   db.collection('users').where('role','==','student').onSnapshot(function(snap) {
     allStudents = [];
     snap.forEach(function(doc) { allStudents.push(Object.assign({id:doc.id}, doc.data())); });
@@ -1555,6 +1563,14 @@ function loadStudents() {
         if (d.slice(0, 7) === ym) monthCount++;
         if (d.slice(0, 4) === yy) yearCount++;
         if (d > today) upcoming++;
+        else if (d === today) {
+          var tmm = (l.notes || '').match(/(\d{1,2}):(\d{2})/);
+          if (!tmm) upcoming++;
+          else {
+            var nw = new Date();
+            if (Number(tmm[1]) * 60 + Number(tmm[2]) > nw.getHours() * 60 + nw.getMinutes()) upcoming++;
+          }
+        }
         if (!l.studentId) return;
         var st = lessonStats[l.studentId] = lessonStats[l.studentId] || {count:0, last:''};
         st.count++;
@@ -1614,9 +1630,28 @@ function renderStudentsList() {
   renderAdminAlerts(active);
 }
 
+var dismissedAlerts = null;
+
+function loadDismissedAlerts() {
+  db.collection('users').doc(currentUser.uid).get().then(function(d) {
+    dismissedAlerts = (d.exists && d.data().dismissedAlerts) || {};
+    renderStudentsList();
+  });
+}
+
+function dismissAlert(key) {
+  dismissedAlerts = dismissedAlerts || {};
+  dismissedAlerts[key] = true;
+  var patch = {dismissedAlerts: {}};
+  patch.dismissedAlerts[key] = true;
+  db.collection('users').doc(currentUser.uid).set(patch, {merge:true});
+  renderStudentsList();
+}
+
 function renderAdminAlerts(active) {
   var el = document.getElementById('admin-alerts');
   if (!el) return;
+  var dis = dismissedAlerts || {};
   var alerts = [];
   active.forEach(function(s) {
     var st = lessonStats[s.id] || {count:0, last:''};
@@ -1625,24 +1660,27 @@ function renderAdminAlerts(active) {
     var remaining = total - used;
     var n = adminName(s);
     var pace = paceStatus(s, st);
-    if (total > 0 && remaining === 1) alerts.push({cls:'warn', txt:'🔔 ל־' + n + ' נשאר שיעור אחרון'});
-    else if (pace && pace.code === 'done') alerts.push({cls:'done', txt:'🎓 ' + n + ' סיים את החבילה'});
-    else if (pace && pace.code === 'expired') alerts.push({cls:'warn', txt:'⌛ החבילה של ' + n + ' פגת תוקף ונשארו לו ' + pace.remaining + ' שיעורים'});
-    else if (pace && pace.code === 'behind') alerts.push({cls:'warn', txt:'🏃 ' + n + ' בפיגור מהקצב — ' + pace.remaining + ' שיעורים ב־' + pace.days + ' ימים'});
-    else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים'});
-    else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים'});
+    if (total > 0 && remaining === 1) alerts.push({cls:'warn', key:'last_' + s.id + '_' + used, txt:'🔔 ל־' + n + ' נשאר שיעור אחרון'});
+    else if (pace && pace.code === 'done') alerts.push({cls:'done', key:'done_' + s.id, txt:'🎓 ' + n + ' סיים את החבילה'});
+    else if (pace && pace.code === 'expired') alerts.push({cls:'warn', key:'expired_' + s.id, txt:'⌛ החבילה של ' + n + ' פגת תוקף ונשארו לו ' + pace.remaining + ' שיעורים'});
+    else if (pace && pace.code === 'behind') alerts.push({cls:'warn', key:'behind_' + s.id, txt:'🏃 ' + n + ' בפיגור מהקצב — ' + pace.remaining + ' שיעורים ב־' + pace.days + ' ימים'});
+    else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', key:'expiring_' + s.id, txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים'});
+    else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', key:'stale_' + s.id + '_' + st.last, txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים'});
   });
   var today = new Date().toISOString().split('T')[0];
   allLessonsAdmin.forEach(function(l) {
     if (!l.date) return;
     if (l.date === today) {
-      alerts.unshift({cls: 'done', txt: '📅 היום: שיעור עם ' + (l.studentName || '') + (l.notes ? ' · ' + l.notes : '')});
+      alerts.unshift({cls: 'done', key: 'today_' + l.id, txt: '📅 היום: שיעור עם ' + (l.studentName || '') + (l.notes ? ' · ' + l.notes : '')});
     } else if (l.date < today && !l.summaryFull && daysSince(l.date) <= 14) {
-      alerts.push({cls: 'stale', txt: '📝 ממתין לסיכום: ' + (l.studentName || '') + ' · ' + l.date});
+      alerts.push({cls: 'stale', key: 'sum_' + l.id, txt: '📝 ממתין לסיכום: ' + (l.studentName || '') + ' · ' + l.date});
     }
   });
-  el.innerHTML = alerts.map(function(a) {
-    return '<div class="admin-alert ' + a.cls + '">' + escapeHtmlTx(a.txt) + '</div>';
+  el.innerHTML = alerts.filter(function(a) { return !dis[a.key]; }).map(function(a) {
+    return '<div class="admin-alert ' + a.cls + '">' +
+      '<span>' + escapeHtmlTx(a.txt) + '</span>' +
+      '<button class="alert-dismiss" title="סמן כטופל" onclick="dismissAlert(\'' + a.key + '\')">✓</button>' +
+    '</div>';
   }).join('');
 }
 
@@ -2072,8 +2110,13 @@ function loadLessons() {
     snap.forEach(function(doc) { lessons.push(Object.assign({id:doc.id}, doc.data())); });
     lessons.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
 
+    var seqMap = {}, counters = {};
+    lessons.slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }).forEach(function(l) {
+      counters[l.studentId] = (counters[l.studentId] || 0) + 1;
+      seqMap[l.id] = counters[l.studentId];
+    });
     var html = '';
-    lessons.forEach(function(l, i) { html += lessonCard(l, lessons.length - i); });
+    lessons.forEach(function(l) { html += lessonCard(l, seqMap[l.id] || 1); });
     var list = document.getElementById('lessons-list');
     var empty = document.getElementById('lessons-empty');
     if (lessons.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; }
