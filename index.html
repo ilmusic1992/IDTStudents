@@ -1538,6 +1538,7 @@ function loadStudents() {
     document.getElementById('filter-student').innerHTML = opts1;
     document.getElementById('filter-trading-student').innerHTML = opts2;
     document.getElementById('m-student').innerHTML = opts3;
+    processIncomingBookings();
   });
   if (!lessonsWatcherStarted) {
     lessonsWatcherStarted = true;
@@ -1790,6 +1791,73 @@ function linkManualStudent() {
     closeStudentModal();
     alert('✅ הקישור הושלם — כל הנתונים עברו לחשבון הרשום');
   }).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+
+// מפענח טקסט מייל הזמנה — משמש גם את הייבוא הידני וגם את האוטומציה
+function parseBookingText(t) {
+  var out = {name: '', email: '', phone: '', date: '', time: ''};
+  if (!t) return out;
+  var lines = t.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  var em = t.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  if (em) out.email = em[0].toLowerCase();
+  var ph = t.match(/\+?9725\d{8}|05\d[- ]?\d{7}/);
+  if (ph) out.phone = ph[0];
+  for (var i = 0; i < lines.length - 1; i++) {
+    if (/^:?\s*Name\s*:?$/i.test(lines[i])) { out.name = lines[i + 1].replace(/[:]/g, '').trim(); break; }
+  }
+  var months = {'ינואר':1,'פברואר':2,'מרץ':3,'אפריל':4,'מאי':5,'יוני':6,'יולי':7,'אוגוסט':8,'ספטמבר':9,'אוקטובר':10,'נובמבר':11,'דצמבר':12};
+  var hm = t.match(/(\d{1,2})\s+ב?(ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)\s+(\d{4})/);
+  if (hm) out.date = hm[3] + '-' + String(months[hm[2]]).padStart(2, '0') + '-' + hm[1].padStart(2, '0');
+  else {
+    var dm = t.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+    if (dm) out.date = (dm[3].length === 2 ? '20' + dm[3] : dm[3]) + '-' + dm[2].padStart(2, '0') + '-' + dm[1].padStart(2, '0');
+    else { var iso = t.match(/(20\d{2})-(\d{2})-(\d{2})/); if (iso) out.date = iso[0]; }
+  }
+  var tm = t.match(/(\d{1,2}):(\d{2})/);
+  if (tm) out.time = tm[0];
+  return out;
+}
+
+// עיבוד אוטומטי של הזמנות שהגיעו מהסקריפט (אוסף bookings)
+var bookingsProcessed = false;
+function processIncomingBookings() {
+  if (bookingsProcessed) return;
+  bookingsProcessed = true;
+  db.collection('bookings').where('status', '==', 'new').get().then(function(snap) {
+    if (snap.empty) return;
+    var count = 0, jobs = [];
+    snap.forEach(function(doc) {
+      var b = doc.data();
+      var p = parseBookingText(b.rawText || '');
+      var email = (b.email || p.email || '').toLowerCase();
+      var name = b.name || p.name || email || 'תלמיד חדש';
+      var date = b.date || p.date;
+      var time = b.time || p.time || '';
+      if (!date) { jobs.push(doc.ref.update({status: 'error'})); return; }
+      count++;
+      var existing = allStudents.find(function(x) { return email && (x.email || '').toLowerCase() === email; });
+      var sidP = existing
+        ? Promise.resolve({id: existing.id, name: adminName(existing)})
+        : db.collection('users').add({
+            name: name, email: email, phone: b.phone || p.phone || '',
+            role: 'student', manual: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(function(r) { return {id: r.id, name: name}; });
+      jobs.push(sidP.then(function(st) {
+        return db.collection('lessons').add({
+          studentId: st.id, studentName: st.name, date: date,
+          topic: 'שיעור (נקבע דרך הבוילר)',
+          notes: time ? 'שעה ' + time : '',
+          booked: true, autoImported: true,
+          mentorId: currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function() { return doc.ref.update({status: 'done'}); });
+      }));
+    });
+    Promise.all(jobs).then(function() {
+      if (count) alert('📥 יובאו אוטומטית ' + count + ' הזמנות חדשות מהמייל');
+    });
+  }).catch(function() {});
 }
 
 function deleteStudent() {
