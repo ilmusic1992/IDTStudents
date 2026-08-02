@@ -620,21 +620,21 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <div id="admin-home" style="display:none">
         <div id="admin-alerts"></div>
         <div class="stats-grid mt-10">
-          <div class="stat-card">
+          <div class="stat-card" onclick="showStatDetails('students')" style="cursor:pointer">
             <div class="stat-label">סטודנטים פעילים</div>
             <div class="stat-value green" id="stat-students">0</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" onclick="showStatDetails('upcoming')" style="cursor:pointer">
             <div class="stat-label">📅 שיעורים קרובים</div>
             <div class="stat-value" id="stat-upcoming">0</div>
           </div>
         </div>
         <div class="stats-grid">
-          <div class="stat-card">
+          <div class="stat-card" onclick="showStatDetails('month')" style="cursor:pointer">
             <div class="stat-label">שיעורים החודש</div>
             <div class="stat-value" id="stat-month-lessons">0</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" onclick="showStatDetails('year')" style="cursor:pointer">
             <div class="stat-label">שיעורים השנה</div>
             <div class="stat-value" id="stat-year-lessons">0</div>
           </div>
@@ -1158,6 +1158,17 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <input class="input-field" type="url" id="m-link" placeholder="https://..." style="direction:ltr">
     </div>
     <button class="btn-primary" onclick="saveLesson()">שמור סיכום</button>
+  </div>
+</div>
+
+<!-- ====== STAT DETAILS MODAL ====== -->
+<div class="modal-overlay" id="stat-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="stat-modal-title"></div>
+      <button class="modal-close" onclick="closeStatModal()">✕</button>
+    </div>
+    <div id="stat-modal-list" style="padding:0 2px"></div>
   </div>
 </div>
 
@@ -1896,6 +1907,62 @@ function processIncomingBookings() {
       if (count) alert('📥 יובאו אוטומטית ' + count + ' הזמנות חדשות מהמייל');
     });
   }).catch(function() {});
+}
+
+function closeStatModal() { document.getElementById('stat-modal').classList.remove('open'); }
+
+function statLessonRow(l) {
+  var tmm = (l.notes || '').match(/(\d{1,2}):(\d{2})/);
+  return '<div class="ycat-row" style="cursor:pointer" onclick="closeStatModal();openEditLesson(\'' + l.id + '\')">' +
+    '<span class="ycat-name">' + escapeHtmlTx(l.studentName || '') + '</span>' +
+    '<span style="color:var(--gray-500);font-size:12px">' + (l.date || '') + (tmm ? ' · ' + tmm[0] : '') + '</span>' +
+  '</div>';
+}
+
+function showStatDetails(kind) {
+  var title = '', html = '';
+  var today = new Date().toISOString().split('T')[0];
+  var ym = today.slice(0, 7), yy = today.slice(0, 4);
+
+  if (kind === 'students') {
+    title = '👥 סטודנטים פעילים';
+    html = allStudents.filter(function(st0) { return !st0.archived; }).map(function(st0) {
+      var st = lessonStats[st0.id] || {count: 0};
+      var total = parseInt(st0.totalLessons) || 0;
+      var used = usedLessons(st0, st);
+      return '<div class="ycat-row" style="cursor:pointer" onclick="closeStatModal();openStudentModal(\'' + st0.id + '\')">' +
+        '<span class="ycat-name">' + escapeHtmlTx(adminName(st0)) + (st0.studentType ? ' · ' + escapeHtmlTx(st0.studentType) : '') + '</span>' +
+        '<span class="ycat-val">' + used + (total ? '/' + total : '') + '</span>' +
+      '</div>';
+    }).join('');
+  } else if (kind === 'upcoming') {
+    title = '📅 שיעורים קרובים';
+    html = allLessonsAdmin.filter(function(l) {
+      if (!l.date) return false;
+      if (l.date > today) return true;
+      if (l.date === today) {
+        var tmm = (l.notes || '').match(/(\d{1,2}):(\d{2})/);
+        if (!tmm) return true;
+        var nw = new Date();
+        return Number(tmm[1]) * 60 + Number(tmm[2]) > nw.getHours() * 60 + nw.getMinutes();
+      }
+      return false;
+    }).sort(function(a, b) { return ((a.date || '') + (a.notes || '')).localeCompare((b.date || '') + (b.notes || '')); })
+      .map(statLessonRow).join('');
+  } else if (kind === 'month') {
+    title = '📆 שיעורים החודש';
+    html = allLessonsAdmin.filter(function(l) { return (l.date || '').slice(0, 7) === ym; })
+      .sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); })
+      .map(statLessonRow).join('');
+  } else if (kind === 'year') {
+    title = '🗓️ שיעורים השנה';
+    html = allLessonsAdmin.filter(function(l) { return (l.date || '').slice(0, 4) === yy; })
+      .sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); })
+      .map(statLessonRow).join('');
+  }
+  document.getElementById('stat-modal-title').textContent = title;
+  document.getElementById('stat-modal-list').innerHTML = html || '<div class="tx-empty">אין נתונים</div>';
+  document.getElementById('stat-modal').classList.add('open');
 }
 
 function deleteStudent() {
