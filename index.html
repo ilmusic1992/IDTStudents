@@ -1353,7 +1353,8 @@ var FB_CONFIG = {
 };
 
 // YOUR Firebase UID (the admin) — replace after first login
-var ADMIN_UID = "HI21gFZ70fN1Pa77QetxCDvfBdo2";
+// מנהלי המערכת — אפשר להוסיף עוד UID לרשימה
+var ADMIN_UIDS = ["HI21gFZ70fN1Pa77QetxCDvfBdo2", "M4T2wnoJBEQ5vNUtgt22Pz8lphl1"];
 
 // מערך השיעורים לתלמידי קורס — עדכן כאן
 var COURSE_SYLLABUS = [
@@ -1380,7 +1381,7 @@ window.addEventListener('load', function() {
   auth = firebase.auth();
   db = firebase.firestore();
   auth.onAuthStateChanged(function(u) {
-    if (u) { currentUser = u; isAdmin = u.uid === ADMIN_UID; initApp(); }
+    if (u) { currentUser = u; isAdmin = ADMIN_UIDS.indexOf(u.uid) >= 0; initApp(); }
     else { document.getElementById('login-screen').classList.add('active'); document.getElementById('app-screen').classList.remove('active'); }
   });
 });
