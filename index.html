@@ -662,11 +662,11 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
           <select id="sf-type" onchange="renderStudentsList()" style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
             <option value="">כל הסוגים</option>
-            <option value="קורס">קורס</option>
+            <option value="קורס בויילר">קורס בויילר</option>
             <option value="מכינה">מכינה</option>
-            <option value="חבילת 5">חבילת 5</option>
-            <option value="חבילת 10">חבילת 10</option>
-            <option value="ליווי">ליווי</option>
+            <option value="ליווי בויילר">ליווי בויילר</option>
+            <option value="ליווי איתמר">ליווי איתמר</option>
+            <option value="חבילת שיעורים">חבילת שיעורים</option>
           </select>
           <input id="sf-cohort" oninput="renderStudentsList()" placeholder="סינון לפי מחזור..." style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
           <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--gray-700);white-space:nowrap;padding:0 4px;cursor:pointer">
@@ -1313,11 +1313,11 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <label class="input-label">סוג תלמיד</label>
         <select id="e-type" onchange="autoCalcExpiry()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);">
           <option value="">—</option>
-          <option value="קורס">קורס (3 חודשים)</option>
+          <option value="קורס בויילר">קורס בויילר (3 חודשים)</option>
           <option value="מכינה">מכינה (שבוע)</option>
-          <option value="חבילת 5">חבילת 5 שיעורים</option>
-          <option value="חבילת 10">חבילת 10 שיעורים</option>
-          <option value="ליווי">ליווי (בויילר/איתמר)</option>
+          <option value="ליווי בויילר">ליווי בויילר</option>
+          <option value="ליווי איתמר">ליווי איתמר</option>
+          <option value="חבילת שיעורים">חבילת שיעורים</option>
         </select>
       </div>
     </div>
@@ -1895,14 +1895,12 @@ function addMonthsISO(iso, months) {
 }
 function computeExpiry(type, startIso, totalLessons) {
   if (!startIso || !type) return '';
-  if (type === 'קורס') return addMonthsISO(startIso, 3);
+  if (type === 'קורס בויילר') return addMonthsISO(startIso, 3);
   if (type === 'מכינה') return addDaysISO(startIso, 7);
-  if (type === 'חבילת 5') return addDaysISO(startIso, 7 * 7);
-  if (type === 'חבילת 10') return addDaysISO(startIso, 13 * 7);
-  if (type === 'ליווי') {
+  if (type === 'ליווי בויילר' || type === 'ליווי איתמר' || type === 'חבילת שיעורים') {
     var n = parseInt(totalLessons) || 0;
     if (!n) return '';
-    var weeks = Math.ceil(n / 5) + 1;
+    var weeks = n + Math.ceil(n / 5) + 1;
     return addDaysISO(startIso, weeks * 7);
   }
   return '';
@@ -2280,7 +2278,7 @@ function emailAllStudents() {
 function renderSyllabus(u, used) {
   var card = document.getElementById('syllabus-card');
   if (!card) return;
-  if (u.studentType !== 'קורס') { card.style.display = 'none'; return; }
+  if (u.studentType !== 'קורס בויילר') { card.style.display = 'none'; return; }
   card.style.display = 'block';
   var html = '';
   COURSE_SYLLABUS.forEach(function(topic, i) {
