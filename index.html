@@ -397,6 +397,7 @@ body {
 .s-badge.stale { background:#fef3c7; color:#b45309; }
 .s-badge.done { background:var(--green-light); color:var(--green-dark); }
 .s-badge.manual { background:var(--gray-100); color:var(--gray-500); }
+.s-badge.wa { background:#dcfce7; color:#15803d; }
 .admin-alert {
   display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
   padding:10px 13px; border-radius:var(--radius-sm); margin-bottom:7px;
@@ -603,6 +604,11 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       צור קשר: <a href="tel:0552616624" style="color:var(--green);font-weight:600;text-decoration:none">055-2616624</a>
       &nbsp;•&nbsp;
       <a href="mailto:idtdaytrading@gmail.com" style="color:var(--green);font-weight:600;text-decoration:none">idtdaytrading@gmail.com</a>
+      <div style="margin-top:10px">
+        <a href="https://wa.me/972552616624" target="_blank" style="color:var(--gray-500);text-decoration:none;margin:0 6px">וואטסאפ</a>
+        <a href="https://www.youtube.com/@IDT-ItamarDayTrading" target="_blank" style="color:var(--gray-500);text-decoration:none;margin:0 6px">יוטיוב</a>
+        <a href="https://www.instagram.com/itamardaytrading" target="_blank" style="color:var(--gray-500);text-decoration:none;margin:0 6px">אינסטגרם</a>
+      </div>
     </div>
   </div>
 </div>
@@ -652,6 +658,21 @@ canvas { width:100% !important; display:block; border-radius:8px; }
             <button class="tx-add-btn" onclick="openNewStudentModal()">+ תלמיד</button>
             <button class="tx-add-btn" style="background:var(--gray-900)" onclick="emailAllStudents()">✉️ מייל לכולם</button>
           </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <select id="sf-type" onchange="renderStudentsList()" style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
+            <option value="">כל הסוגים</option>
+            <option value="קורס">קורס</option>
+            <option value="מכינה">מכינה</option>
+            <option value="חבילת 5">חבילת 5</option>
+            <option value="חבילת 10">חבילת 10</option>
+            <option value="ליווי">ליווי</option>
+          </select>
+          <input id="sf-cohort" oninput="renderStudentsList()" placeholder="סינון לפי מחזור..." style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--gray-700);white-space:nowrap;padding:0 4px;cursor:pointer">
+            <input type="checkbox" id="sf-closing" onchange="renderStudentsList()" style="width:15px;height:15px;accent-color:var(--green)">
+            קרוב לסיום
+          </label>
         </div>
         <div id="students-home-list"></div>
       </div>
@@ -803,11 +824,15 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <div class="ext-card" onclick="showCalc('altwr')"><div class="ext-icon">🔄</div><div class="ext-name">הצלחה חלופית</div></div>
         <div class="ext-card" onclick="showCalc('consistency')"><div class="ext-icon">🎲</div><div class="ext-name">מחשבון עקביות</div></div>
         <div class="ext-card" onclick="showCalc('mc')"><div class="ext-icon">🏦</div><div class="ext-name">שרידות תיק ממומן</div></div>
+        <div class="ext-card" onclick="showCalc('expectations')"><div class="ext-icon">📋</div><div class="ext-name">תיאום ציפיות</div></div>
       </div>
 
       <div class="section-title">צור קשר</div>
       <a href="tel:0552616624" class="link-btn">📞&nbsp;&nbsp;055-2616624 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>
       <a href="mailto:idtdaytrading@gmail.com" class="link-btn">✉️&nbsp;&nbsp;idtdaytrading@gmail.com <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>
+      <a href="https://wa.me/972552616624" target="_blank" class="link-btn">💬&nbsp;&nbsp;וואטסאפ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>
+      <a href="https://www.youtube.com/@IDT-ItamarDayTrading" target="_blank" class="link-btn">▶️&nbsp;&nbsp;יוטיוב <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>
+      <a href="https://www.instagram.com/itamardaytrading" target="_blank" class="link-btn">📸&nbsp;&nbsp;אינסטגרם <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>
 
       <div class="section-title">קישורים חיצוניים</div>
 
@@ -987,6 +1012,35 @@ canvas { width:100% !important; display:block; border-radius:8px; }
     </div>
     <div id="ci-questions"></div>
     <button class="btn-primary" id="ci-save-btn" onclick="saveCheckin()">שמור צ'ק-אין</button>
+  </div>
+</div>
+
+<div class="calc-screen" id="calc-expectations">
+  <div class="calc-header">
+    <button class="back-btn" onclick="hideCalc()">‹</button>
+    <div class="calc-title">📋 תיאום ציפיות</div>
+  </div>
+  <div class="calc-content" style="line-height:1.7;font-size:14.5px">
+    <div id="exp-v-status" style="font-size:13px;font-weight:700;color:var(--green-dark);background:var(--green-pale);border-radius:10px;padding:10px 12px;margin-bottom:16px"></div>
+    <p>לפני שאנחנו יוצאים לדרך המשותפת שלנו, חשוב לי להבין מי אתה, מאיפה אתה מגיע ולאן אתה רוצה להגיע. המטרה שלי היא לא רק ללמד אותך מסחר — אלא לעזור לך לבנות דרך עבודה נכונה, ולהפוך לסוחר עצמאי, עקבי וממושמע.</p>
+    <div class="section-title" style="margin-top:18px">קצת עליך</div>
+    <div style="background:var(--gray-100);border-radius:10px;padding:12px 14px;font-size:13.5px">
+      <div>שם מלא: <b id="exp-v-name">—</b></div>
+      <div>גיל: <b id="exp-v-age">—</b></div>
+      <div>מקצוע / עיסוק: <b id="exp-v-occupation">—</b></div>
+      <div>אימייל: <b id="exp-v-email">—</b></div>
+      <div style="margin-top:8px">ניסיון קודם במסחר: <b id="exp-v-experience">—</b></div>
+      <div style="margin-top:6px">מה מצפה לקבל מהתהליך: <b id="exp-v-goals">—</b></div>
+      <div style="margin-top:6px">איפה רואה את עצמו כסוחר בעוד 3–6 חודשים: <b id="exp-v-vision">—</b></div>
+    </div>
+    <div class="section-title" style="margin-top:18px">מה אני מצפה ממך</div>
+    <p><b>1. לנהל יומן מסחר.</b> כל עסקה היא הזדמנות ללמוד. אני מצפה שתתעד את המסחר שלך בצורה מסודרת, כדי שנוכל לראות מה עובד, מה לא, ואיפה צריך להשתפר.</p>
+    <p><b>2. לקבוע שיעור אחת לשבוע.</b> התקדמות דורשת רציפות. אני מצפה שניפגש לפחות פעם בשבוע, ושאתה תהיה אחראי לקבוע את השיעור — ולהגיע אליו מוכן.</p>
+    <p><b>3. להיות חלק מהקהילה הקטנה והפרטית שלי.</b> הקהילה הפרטית שלי בבויילר היא חלק משמעותי מהתהליך שלנו: תכנים, לייבים, הפתעות — והכי חשוב, אנשים שנמצאים באותה דרך. אני מצפה שתהיה מחובר, תיקח חלק, ותהיה נוכח.</p>
+    <p><b>4. להיות נוכח בקהילה בבויילר.</b> חדר המסחר בבויילר הוא אחד הדברים שמבדילים את הקהילה הזו מכל השאר. ככל שתהיה נוכח יותר — תשאל, תשתף ותציג את העבודה שלך — כך תיחשף לסוחרים מהרמות הגבוהות ביותר, ואני אוכל להכיר אותך טוב יותר ולתת לך מעטפת מדויקת יותר. אל תחכה רק לשיעור שלנו כדי לעבוד על עצמך.</p>
+    <p><b>5. להיות סוחר — לא מהמר.</b> אני לא מחפש שתעשה "מכה". אני רוצה שתלמד לעבוד נכון: לעמוד ביעדים, לבצע משימות, לכבד את הכללים, לנהל סיכון, ללמוד מהטעויות — ולהישאר עקבי גם כשלא הולך. המטרה שלי היא לא שתדע לעשות טרייד טוב. המטרה שלי היא שתדע להיות סוחר.</p>
+    <div class="section-title" style="margin-top:18px">מה אני מביא לתהליך</div>
+    <p style="margin-bottom:20px">אני מביא איתי את הידע, הניסיון, הליווי והכלים — כל מה שאני יכול לתת לך. אבל את העבודה אי אפשר לעשות במקומך. אני יכול להראות לך את הדרך; את הצעדים אתה צריך לעשות בעצמך. אם שנינו נעשה את החלק שלנו — נבנה כאן תהליך משמעותי באמת.</p>
   </div>
 </div>
 
@@ -1257,27 +1311,37 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       </div>
       <div class="input-group">
         <label class="input-label">סוג תלמיד</label>
-        <select id="e-type" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);">
+        <select id="e-type" onchange="autoCalcExpiry()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;background:var(--white);">
           <option value="">—</option>
-          <option value="ליווי">ליווי</option>
-          <option value="קורס">קורס</option>
+          <option value="קורס">קורס (3 חודשים)</option>
+          <option value="מכינה">מכינה (שבוע)</option>
+          <option value="חבילת 5">חבילת 5 שיעורים</option>
+          <option value="חבילת 10">חבילת 10 שיעורים</option>
+          <option value="ליווי">ליווי (בויילר/איתמר)</option>
         </select>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="input-group">
         <label class="input-label">כמה שיעורים בחבילה</label>
-        <input class="input-field" type="number" id="e-total" placeholder="0" style="direction:ltr">
+        <input class="input-field" type="number" id="e-total" oninput="autoCalcExpiry()" placeholder="0" style="direction:ltr">
       </div>
       <div class="input-group">
         <label class="input-label">נוצלו לפני המערכת</label>
         <input class="input-field" type="number" id="e-offset" placeholder="0" style="direction:ltr">
       </div>
     </div>
-    <div class="input-group">
-      <label class="input-label">תוקף החבילה (תאריך תפוגה)</label>
-      <input class="input-field" type="date" id="e-expiry" style="direction:ltr">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="input-group">
+        <label class="input-label">תאריך התחלת מחזור</label>
+        <input class="input-field" type="date" id="e-start" onchange="autoCalcExpiry()" style="direction:ltr">
+      </div>
+      <div class="input-group">
+        <label class="input-label">תוקף החבילה (תאריך תפוגה)</label>
+        <input class="input-field" type="date" id="e-expiry" style="direction:ltr">
+      </div>
     </div>
+    <div id="e-expiry-hint" style="font-size:11px;color:var(--gray-500);margin-top:-8px;margin-bottom:12px"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="input-group">
         <label class="input-label">טלפון</label>
@@ -1300,6 +1364,10 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <input type="checkbox" id="e-booklet" style="width:17px;height:17px;accent-color:var(--green)">
       📘 גישה לחוברת "שוק ההון מ-0 ל-100"
     </label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:10px;cursor:pointer">
+      <input type="checkbox" id="e-whatsapp" style="width:17px;height:17px;accent-color:var(--green)">
+      💬 חבר בקהילת הוואטסאפ
+    </label>
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:16px;cursor:pointer">
       <input type="checkbox" id="e-archived" style="width:17px;height:17px;accent-color:var(--green)">
       העבר לארכיון (לא יופיע בדשבורד, עדיין יוכל להתחבר)
@@ -1312,8 +1380,34 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       </select>
       <button class="tx-add-btn" style="width:100%;padding:10px" onclick="linkManualStudent()">קשר והעבר נתונים</button>
     </div>
+    <button class="tx-add-btn" id="sm-exp-btn" style="width:100%;margin-bottom:10px;background:var(--gray-700)" onclick="openExpModal()">📋 תיאום ציפיות</button>
     <button class="btn-primary" onclick="saveStudent()">שמור פרטים</button>
     <button id="sm-delete-btn" onclick="deleteStudent()" style="width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--red);background:var(--red-light);color:var(--red);border-radius:10px;font-family:Heebo,sans-serif;font-size:14px;font-weight:700;cursor:pointer">🗑 מחיקת תלמיד וחסימת גישה</button>
+  </div>
+</div>
+
+<!-- ====== EXPECTATIONS MODAL ====== -->
+<div class="modal-overlay" id="exp-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">תיאום ציפיות</div>
+      <button class="modal-close" onclick="closeExpModal()">✕</button>
+    </div>
+    <div id="exp-modal-status" style="font-size:13px;font-weight:600;color:var(--gray-500);margin-bottom:14px"></div>
+    <div class="input-group">
+      <label class="input-label">מה הניסיון הקודם שלו במסחר?</label>
+      <textarea class="input-field" id="exp-experience" rows="2" style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">מה הוא מצפה לקבל מהתהליך?</label>
+      <textarea class="input-field" id="exp-goals" rows="2" style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">איפה הוא רואה את עצמו כסוחר בעוד 3–6 חודשים?</label>
+      <textarea class="input-field" id="exp-vision" rows="2" style="resize:vertical;font-family:Heebo,sans-serif"></textarea>
+    </div>
+    <div style="font-size:11.5px;color:var(--gray-500);margin-bottom:12px">שם / גיל / עיסוק / אימייל נמשכים אוטומטית מכרטיס התלמיד. "מה אני מצפה ממך" ו"מה אני מביא לתהליך" קבועים ומוצגים לתלמיד אוטומטית.</div>
+    <button class="btn-primary" onclick="saveExpectations()">שמור וסמן כתואם היום</button>
   </div>
 </div>
 
@@ -1614,8 +1708,24 @@ function renderStudentsList() {
   if (!listEl) return;
   var active = allStudents.filter(function(s) { return !s.archived; });
   document.getElementById('stat-students').textContent = active.length;
+  var ftype = document.getElementById('sf-type') ? document.getElementById('sf-type').value : '';
+  var fcohort = document.getElementById('sf-cohort') ? document.getElementById('sf-cohort').value.trim().toLowerCase() : '';
+  var fclosing = document.getElementById('sf-closing') ? document.getElementById('sf-closing').checked : false;
+  var shown = active.filter(function(s) {
+    if (ftype && s.studentType !== ftype) return false;
+    if (fcohort && !(s.cohort || '').toLowerCase().includes(fcohort)) return false;
+    if (fclosing) {
+      var st0 = lessonStats[s.id] || {count:0, last:''};
+      var p0 = paceStatus(s, st0);
+      var total0 = parseInt(s.totalLessons) || 0;
+      var remaining0 = total0 - usedLessons(s, st0);
+      var isClosing = (p0 && (p0.code === 'expiring' || p0.code === 'behind' || p0.code === 'expired')) || (total0 > 0 && remaining0 > 0 && remaining0 <= 2);
+      if (!isClosing) return false;
+    }
+    return true;
+  });
   var html = '';
-  active.forEach(function(s) {
+  shown.forEach(function(s) {
     var n = adminName(s);
     var st = lessonStats[s.id] || {count:0, last:''};
     var total = parseInt(s.totalLessons) || 0;
@@ -1635,6 +1745,7 @@ function renderStudentsList() {
       badge = ' <span class="s-badge stale">לא קבע שיעור</span>';
     }
     if (s.manual) badge = ' <span class="s-badge manual">ידני</span>' + badge;
+    if (s.waCommunity) badge += ' <span class="s-badge wa">💬 קהילה</span>';
     var meta = [];
     if (s.cohort) meta.push('מחזור ' + s.cohort);
     if (s.studentType) meta.push(s.studentType);
@@ -1716,13 +1827,16 @@ function openNewStudentModal() {
   document.getElementById('sm-lessons-info').textContent = 'תלמיד שלא נרשם לאפליקציה — תוכל לנהל עליו הכל, ולקשר אותו לחשבון אמיתי כשיירשם.';
   document.getElementById('sm-identity').style.display = 'block';
   document.getElementById('sm-link-section').style.display = 'none';
-  ['e-name','e-email','e-nickname','e-cohort','e-total','e-offset','e-expiry','e-phone','e-age','e-occupation','e-about'].forEach(function(id) {
+  ['e-name','e-email','e-nickname','e-cohort','e-total','e-offset','e-start','e-expiry','e-phone','e-age','e-occupation','e-about'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
+  document.getElementById('e-expiry-hint').textContent = '';
   document.getElementById('e-type').value = '';
   document.getElementById('e-archived').checked = false;
   document.getElementById('e-booklet').checked = false;
+  document.getElementById('e-whatsapp').checked = false;
   document.getElementById('sm-delete-btn').style.display = 'none';
+  document.getElementById('sm-exp-btn').style.display = 'none';
   document.getElementById('student-modal').classList.add('open');
 }
 
@@ -1751,19 +1865,61 @@ function openStudentModal(id) {
   document.getElementById('e-type').value = st0.studentType || '';
   document.getElementById('e-total').value = st0.totalLessons || '';
   document.getElementById('e-offset').value = st0.lessonsOffset || '';
+  document.getElementById('e-start').value = st0.startDate || '';
   document.getElementById('e-expiry').value = st0.expiry || '';
+  document.getElementById('e-expiry-hint').textContent = '';
   document.getElementById('e-phone').value = st0.phone || '';
   document.getElementById('e-age').value = st0.age || '';
   document.getElementById('e-occupation').value = st0.occupation || '';
   document.getElementById('e-about').value = st0.about || '';
   document.getElementById('e-archived').checked = !!st0.archived;
   document.getElementById('e-booklet').checked = st0.bookletAccess === 'yes';
+  document.getElementById('e-whatsapp').checked = !!st0.waCommunity;
   document.getElementById('sm-delete-btn').style.display = 'block';
+  document.getElementById('sm-exp-btn').style.display = 'block';
   var st = lessonStats[id] || {count:0};
   document.getElementById('sm-lessons-info').textContent = 'ניצל ' + usedLessons(st0, st) + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '') + (st0.expiry ? ' · תוקף עד ' + st0.expiry : '');
   document.getElementById('student-modal').classList.add('open');
 }
 function closeStudentModal() { document.getElementById('student-modal').classList.remove('open'); }
+
+function addDaysISO(iso, days) {
+  var d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+function addMonthsISO(iso, months) {
+  var d = new Date(iso + 'T00:00:00');
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().split('T')[0];
+}
+function computeExpiry(type, startIso, totalLessons) {
+  if (!startIso || !type) return '';
+  if (type === 'קורס') return addMonthsISO(startIso, 3);
+  if (type === 'מכינה') return addDaysISO(startIso, 7);
+  if (type === 'חבילת 5') return addDaysISO(startIso, 7 * 7);
+  if (type === 'חבילת 10') return addDaysISO(startIso, 13 * 7);
+  if (type === 'ליווי') {
+    var n = parseInt(totalLessons) || 0;
+    if (!n) return '';
+    var weeks = Math.ceil(n / 5) + 1;
+    return addDaysISO(startIso, weeks * 7);
+  }
+  return '';
+}
+function autoCalcExpiry() {
+  var type = document.getElementById('e-type').value;
+  var start = document.getElementById('e-start').value;
+  var total = document.getElementById('e-total').value;
+  var hint = document.getElementById('e-expiry-hint');
+  var computed = computeExpiry(type, start, total);
+  if (computed) {
+    document.getElementById('e-expiry').value = computed;
+    hint.textContent = 'חושב אוטומטית לפי סוג המחזור ותאריך ההתחלה — אפשר לשנות ידנית';
+  } else {
+    hint.textContent = '';
+  }
+}
 
 function saveStudent() {
   if (creatingStudent) {
@@ -1779,6 +1935,7 @@ function saveStudent() {
       studentType: document.getElementById('e-type').value,
       totalLessons: parseInt(document.getElementById('e-total').value) || 0,
       lessonsOffset: parseInt(document.getElementById('e-offset').value) || 0,
+      startDate: document.getElementById('e-start').value || '',
       expiry: document.getElementById('e-expiry').value || '',
       phone: document.getElementById('e-phone').value.trim(),
       age: parseInt(document.getElementById('e-age').value) || null,
@@ -1786,6 +1943,7 @@ function saveStudent() {
       about: document.getElementById('e-about').value.trim(),
       archived: document.getElementById('e-archived').checked,
       bookletAccess: document.getElementById('e-booklet').checked ? 'yes' : '',
+      waCommunity: document.getElementById('e-whatsapp').checked,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).then(function() { creatingStudent = false; closeStudentModal(); }).catch(function(e) { alert('שגיאה: ' + e.message); });
     return;
@@ -1803,6 +1961,7 @@ function saveStudent() {
     studentType: document.getElementById('e-type').value,
     totalLessons: parseInt(document.getElementById('e-total').value) || 0,
     lessonsOffset: parseInt(document.getElementById('e-offset').value) || 0,
+    startDate: document.getElementById('e-start').value || '',
     expiry: document.getElementById('e-expiry').value || '',
     phone: document.getElementById('e-phone').value.trim(),
     age: parseInt(document.getElementById('e-age').value) || null,
@@ -1810,6 +1969,7 @@ function saveStudent() {
     about: document.getElementById('e-about').value.trim(),
     archived: document.getElementById('e-archived').checked,
     bookletAccess: document.getElementById('e-booklet').checked ? 'yes' : '',
+    waCommunity: document.getElementById('e-whatsapp').checked,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }), {merge:true}).then(closeStudentModal).catch(function(e) { alert('שגיאה: ' + e.message); });
 }
@@ -3130,10 +3290,54 @@ function showCalc(name) {
   if (name === 'rr') buildRR();
   if (name === 'contracts') calcContracts();
   if (name === 'altwr') calcAltWR();
+  if (name === 'expectations') initExpectations();
 }
 
+function initExpectations() {
+  db.collection('users').doc(currentUser.uid).get().then(function(doc) {
+    var u = doc.exists ? doc.data() : {};
+    document.getElementById('exp-v-name').textContent = u.name || currentUser.displayName || '—';
+    document.getElementById('exp-v-age').textContent = u.age || '—';
+    document.getElementById('exp-v-occupation').textContent = u.occupation || '—';
+    document.getElementById('exp-v-email').textContent = u.email || currentUser.email || '—';
+    document.getElementById('exp-v-experience').textContent = u.expExperience || '—';
+    document.getElementById('exp-v-goals').textContent = u.expGoals || '—';
+    document.getElementById('exp-v-vision').textContent = u.expVision || '—';
+    var statusEl = document.getElementById('exp-v-status');
+    if (u.expDate) {
+      statusEl.textContent = '✓ תואם בתאריך ' + u.expDate;
+    } else {
+      statusEl.style.background = 'var(--gray-100)';
+      statusEl.style.color = 'var(--gray-500)';
+      statusEl.textContent = 'טרם תואם — ימולא יחד איתי בשיעור הראשון';
+    }
+  });
+}
+
+function openExpModal(id) {
+  var s = allStudents.find(function(x) { return x.id === (id || editingStudentId); });
+  if (!s) return;
+  expModalStudentId = s.id;
+  document.getElementById('exp-experience').value = s.expExperience || '';
+  document.getElementById('exp-goals').value = s.expGoals || '';
+  document.getElementById('exp-vision').value = s.expVision || '';
+  document.getElementById('exp-modal-status').textContent = s.expDate ? ('✓ תואם בתאריך ' + s.expDate) : 'טרם תואם';
+  document.getElementById('exp-modal').classList.add('open');
+}
+function closeExpModal() { document.getElementById('exp-modal').classList.remove('open'); }
+function saveExpectations() {
+  if (!expModalStudentId) return;
+  db.collection('users').doc(expModalStudentId).set({
+    expExperience: document.getElementById('exp-experience').value.trim(),
+    expGoals: document.getElementById('exp-goals').value.trim(),
+    expVision: document.getElementById('exp-vision').value.trim(),
+    expDate: new Date().toISOString().split('T')[0]
+  }, {merge:true}).then(closeExpModal).catch(function(e) { alert('שגיאה: ' + e.message); });
+}
+var expModalStudentId = null;
+
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators','expectations'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
