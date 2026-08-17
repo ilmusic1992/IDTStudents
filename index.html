@@ -1387,6 +1387,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       </select>
       <button class="tx-add-btn" style="width:100%;padding:10px" onclick="linkManualStudent()">קשר והעבר נתונים</button>
     </div>
+    <a id="sm-gcal-btn" href="#" target="_blank" class="tx-add-btn" style="display:none;width:100%;margin-bottom:10px;background:#4285F4;text-align:center;text-decoration:none">📅 קבע שיעור ביומן גוגל</a>
     <a id="sm-wa-btn" href="#" target="_blank" class="tx-add-btn" style="display:none;width:100%;margin-bottom:10px;background:#25D366;text-align:center;text-decoration:none">💬 שלח הודעה בוואטסאפ</a>
     <button class="tx-add-btn" id="sm-exp-btn" style="width:100%;margin-bottom:10px;background:var(--gray-700)" onclick="openExpModal()">📋 תיאום ציפיות</button>
     <button class="btn-primary" onclick="saveStudent()">שמור פרטים</button>
@@ -1630,6 +1631,14 @@ function waHref(phone, name) {
   return 'https://wa.me/' + d + '?text=' + encodeURIComponent(msg);
 }
 
+function gcalHref(name, email) {
+  var text = encodeURIComponent('שיעור מסחר עם ' + (name || ''));
+  var details = encodeURIComponent('שיעור מסחר עם ' + (name || '') + ' — נקבע דרך מערכת IDT Students');
+  var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + text + '&details=' + details;
+  if (email) url += '&add=' + encodeURIComponent(email);
+  return url;
+}
+
 function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
@@ -1781,12 +1790,14 @@ function renderStudentsList() {
     if (s.studentType) meta.push(s.studentType);
     if (s.email) meta.push(s.email);
     var waLink = waHref(s.phone, n);
+    var gcalLink = gcalHref(n, s.email);
     html += '<div class="student-card" onclick="openStudentModal(\'' + s.id + '\')" style="cursor:pointer">' +
       '<div class="student-avatar">' + escapeHtmlTx(n.charAt(0).toUpperCase()) + '</div>' +
       '<div class="student-info"><div class="student-name">' + escapeHtmlTx(n) + badge + '</div>' +
       '<div class="student-meta">' + escapeHtmlTx(meta.join(' · ')) + '</div>' +
       (total > 0 ? '<div class="s-progress"><div class="s-progress-fill" style="width:' + pct + '%"></div></div>' : '') +
       '</div>' +
+      '<a href="' + gcalLink + '" target="_blank" onclick="event.stopPropagation()" title="קבע שיעור ביומן גוגל" style="color:#4285F4;font-size:20px;text-decoration:none;padding:4px 6px">📅</a>' +
       (waLink ? '<a href="' + waLink + '" target="_blank" onclick="event.stopPropagation()" title="שלח הודעה בוואטסאפ" style="color:#25D366;font-size:20px;text-decoration:none;padding:4px 6px">💬</a>' : '') +
       '<div class="s-count">' + used + (total > 0 ? '/' + total : '') + '</div>' +
       '</div>';
@@ -1870,6 +1881,7 @@ function openNewStudentModal() {
   document.getElementById('sm-delete-btn').style.display = 'none';
   document.getElementById('sm-exp-btn').style.display = 'none';
   document.getElementById('sm-wa-btn').style.display = 'none';
+  document.getElementById('sm-gcal-btn').style.display = 'none';
   document.getElementById('student-modal').classList.add('open');
 }
 
@@ -1914,6 +1926,9 @@ function openStudentModal(id) {
   var waLink = waHref(st0.phone, adminName(st0));
   if (waLink) { waBtn.href = waLink; waBtn.style.display = 'block'; }
   else { waBtn.style.display = 'none'; }
+  var gcalBtn = document.getElementById('sm-gcal-btn');
+  gcalBtn.href = gcalHref(adminName(st0), st0.email);
+  gcalBtn.style.display = 'block';
   var st = lessonStats[id] || {count:0};
   document.getElementById('sm-lessons-info').textContent = 'ניצל ' + usedLessons(st0, st) + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '') + (st0.expiry ? ' · תוקף עד ' + st0.expiry : '');
   document.getElementById('student-modal').classList.add('open');
