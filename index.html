@@ -669,6 +669,11 @@ canvas { width:100% !important; display:block; border-radius:8px; }
             <option value="חבילת שיעורים">חבילת שיעורים</option>
           </select>
           <input id="sf-cohort" oninput="renderStudentsList()" placeholder="סינון לפי מחזור..." style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
+          <select id="sf-lesson" onchange="renderStudentsList()" style="flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:13px;outline:none;background:var(--white)">
+            <option value="">כל השיעורים</option>
+            <option value="today">שיעור היום</option>
+            <option value="week">שיעור השבוע</option>
+          </select>
           <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--gray-700);white-space:nowrap;padding:0 4px;cursor:pointer">
             <input type="checkbox" id="sf-closing" onchange="renderStudentsList()" style="width:15px;height:15px;accent-color:var(--green)">
             קרוב לסיום
@@ -1672,6 +1677,11 @@ function loadStudents() {
       var today = new Date().toISOString().split('T')[0];
       var ym = today.slice(0, 7), yy = today.slice(0, 4);
       var monthCount = 0, yearCount = 0, upcoming = 0;
+      var nowD = new Date();
+      var weekStartD = new Date(nowD); weekStartD.setDate(nowD.getDate() - nowD.getDay());
+      var weekEndD = new Date(weekStartD); weekEndD.setDate(weekStartD.getDate() + 6);
+      var weekStart = weekStartD.toISOString().split('T')[0];
+      var weekEnd = weekEndD.toISOString().split('T')[0];
       snap.forEach(function(doc) {
         var l = doc.data();
         allLessonsAdmin.push(Object.assign({id: doc.id}, l));
@@ -1688,9 +1698,11 @@ function loadStudents() {
           }
         }
         if (!l.studentId) return;
-        var st = lessonStats[l.studentId] = lessonStats[l.studentId] || {count:0, last:''};
+        var st = lessonStats[l.studentId] = lessonStats[l.studentId] || {count:0, last:'', hasToday:false, hasWeek:false};
         st.count++;
         if (d > st.last) st.last = d;
+        if (d === today) st.hasToday = true;
+        if (d >= weekStart && d <= weekEnd) st.hasWeek = true;
       });
       var em = document.getElementById('stat-month-lessons');
       var ey = document.getElementById('stat-year-lessons');
@@ -1711,9 +1723,15 @@ function renderStudentsList() {
   var ftype = document.getElementById('sf-type') ? document.getElementById('sf-type').value : '';
   var fcohort = document.getElementById('sf-cohort') ? document.getElementById('sf-cohort').value.trim().toLowerCase() : '';
   var fclosing = document.getElementById('sf-closing') ? document.getElementById('sf-closing').checked : false;
+  var flesson = document.getElementById('sf-lesson') ? document.getElementById('sf-lesson').value : '';
   var shown = active.filter(function(s) {
     if (ftype && s.studentType !== ftype) return false;
     if (fcohort && !(s.cohort || '').toLowerCase().includes(fcohort)) return false;
+    if (flesson) {
+      var stL = lessonStats[s.id] || {};
+      if (flesson === 'today' && !stL.hasToday) return false;
+      if (flesson === 'week' && !stL.hasWeek) return false;
+    }
     if (fclosing) {
       var st0 = lessonStats[s.id] || {count:0, last:''};
       var p0 = paceStatus(s, st0);
