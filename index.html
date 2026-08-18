@@ -1622,13 +1622,26 @@ var lessonsWatcherStarted = false;
 
 function adminName(s) { return s.nickname || s.name || s.email || '?'; }
 
-function waHref(phone, name) {
+function waHrefMsg(phone, msg) {
   var d = (phone || '').replace(/\D/g, '');
   if (!d) return '';
   if (d.charAt(0) === '0') d = '972' + d.slice(1);
   else if (d.indexOf('972') !== 0) d = '972' + d;
-  var msg = 'היי ' + (name || '') + ' 👋';
   return 'https://wa.me/' + d + '?text=' + encodeURIComponent(msg);
+}
+
+function waHref(phone, name) {
+  return waHrefMsg(phone, 'היי ' + (name || '') + ' 👋');
+}
+
+function alertWaMsg(code, name) {
+  var n = name || '';
+  if (code === 'last') return 'היי ' + n + ', נשאר לך שיעור אחרון בחבילה — בוא נקבע? 😊';
+  if (code === 'expired') return 'היי ' + n + ', שמתי לב שתוקף החבילה שלך פג ועוד נשארו שיעורים — בוא נסגור זמן ונמשיך 💪';
+  if (code === 'behind') return 'היי ' + n + ', שמתי לב שקצת ירדנו מהקצב בשיעורים — בוא נקבע ונחזור למסלול 🙌';
+  if (code === 'expiring') return 'היי ' + n + ', התוקף של החבילה שלך מתקרב לסיום ועוד נשארו שיעורים — בוא נקבע 🙂';
+  if (code === 'stale') return 'היי ' + n + ', לא ראיתי שקבעת שיעור כבר תקופה — הכל טוב? בוא נקבע 🙂';
+  return 'היי ' + n + ' 👋';
 }
 
 function gcalHref(name, email) {
@@ -1836,12 +1849,12 @@ function renderAdminAlerts(active) {
     var remaining = total - used;
     var n = adminName(s);
     var pace = paceStatus(s, st);
-    if (total > 0 && remaining === 1) alerts.push({cls:'warn', key:'last_' + s.id + '_' + used, txt:'🔔 ל־' + n + ' נשאר שיעור אחרון'});
+    if (total > 0 && remaining === 1) alerts.push({cls:'warn', key:'last_' + s.id + '_' + used, txt:'🔔 ל־' + n + ' נשאר שיעור אחרון', phone:s.phone, name:n, code:'last'});
     else if (pace && pace.code === 'done') alerts.push({cls:'done', key:'done_' + s.id, txt:'🎓 ' + n + ' סיים את החבילה'});
-    else if (pace && pace.code === 'expired') alerts.push({cls:'warn', key:'expired_' + s.id, txt:'⌛ החבילה של ' + n + ' פגת תוקף ונשארו לו ' + pace.remaining + ' שיעורים'});
-    else if (pace && pace.code === 'behind') alerts.push({cls:'warn', key:'behind_' + s.id, txt:'🏃 ' + n + ' בפיגור מהקצב — ' + pace.remaining + ' שיעורים ב־' + pace.days + ' ימים'});
-    else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', key:'expiring_' + s.id, txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים'});
-    else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', key:'stale_' + s.id + '_' + st.last, txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים'});
+    else if (pace && pace.code === 'expired') alerts.push({cls:'warn', key:'expired_' + s.id, txt:'⌛ החבילה של ' + n + ' פגת תוקף ונשארו לו ' + pace.remaining + ' שיעורים', phone:s.phone, name:n, code:'expired'});
+    else if (pace && pace.code === 'behind') alerts.push({cls:'warn', key:'behind_' + s.id, txt:'🏃 ' + n + ' בפיגור מהקצב — ' + pace.remaining + ' שיעורים ב־' + pace.days + ' ימים', phone:s.phone, name:n, code:'behind'});
+    else if (pace && pace.code === 'expiring') alerts.push({cls:'stale', key:'expiring_' + s.id, txt:'⌛ התוקף של ' + n + ' מסתיים בעוד ' + pace.days + ' ימים ונשארו לו ' + pace.remaining + ' שיעורים', phone:s.phone, name:n, code:'expiring'});
+    else if (st.last && daysSince(st.last) > 14 && (total === 0 || remaining > 0)) alerts.push({cls:'stale', key:'stale_' + s.id + '_' + st.last, txt:'⏰ ' + n + ' לא קבע שיעור מעל שבועיים', phone:s.phone, name:n, code:'stale'});
   });
   var today = new Date().toISOString().split('T')[0];
   allLessonsAdmin.forEach(function(l) {
@@ -1853,8 +1866,10 @@ function renderAdminAlerts(active) {
     }
   });
   el.innerHTML = alerts.filter(function(a) { return !dis[a.key]; }).map(function(a) {
+    var waLink = a.code ? waHrefMsg(a.phone, alertWaMsg(a.code, a.name)) : '';
     return '<div class="admin-alert ' + a.cls + '">' +
       '<span>' + escapeHtmlTx(a.txt) + '</span>' +
+      (waLink ? '<a href="' + waLink + '" target="_blank" title="שלח תזכורת בוואטסאפ" style="color:#25D366;font-size:17px;text-decoration:none;padding:2px 6px">💬</a>' : '') +
       '<button class="alert-dismiss" title="סמן כטופל" onclick="dismissAlert(\'' + a.key + '\')">✓</button>' +
     '</div>';
   }).join('');
