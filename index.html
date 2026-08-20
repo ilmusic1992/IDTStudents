@@ -1210,12 +1210,8 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       <input class="input-field" type="date" id="m-date" style="direction:ltr">
     </div>
     <div class="input-group">
-      <label class="input-label">נושא השיעור</label>
-      <input class="input-field" type="text" id="m-topic" placeholder="FVG, Order Block, AMD...">
-    </div>
-    <div class="input-group">
-      <label class="input-label">סיכום קצר (שורה אחת)</label>
-      <input class="input-field" type="text" id="m-notes" placeholder="מה עשינו בשיעור בקצרה...">
+      <label class="input-label">נושא השיעור וסיכום קצר</label>
+      <input class="input-field" type="text" id="m-topic" placeholder="לדוגמה: FVG, Order Block, AMD — מה עשינו בשיעור בקצרה">
     </div>
     <div class="input-group">
       <label class="input-label">סיכום מלא</label>
@@ -2481,7 +2477,7 @@ function lessonCard(l, num) {
     '<div class="lesson-info">' +
       '<div class="lesson-topic">' + escapeHtmlTx(l.topic || 'שיעור') + '</div>' +
       '<div class="lesson-meta">' + escapeHtmlTx((l.studentName || '')) + '</div>' +
-      (l.notes ? '<div class="lesson-summary-short">' + escapeHtmlTx(l.notes) + '</div>' : '') +
+      (l.notes && !/^שעה\s*\d{1,2}:\d{2}$/.test(l.notes) ? '<div class="lesson-summary-short">' + escapeHtmlTx(l.notes) + '</div>' : '') +
     '</div>' +
     '<div class="lesson-date">' + (l.date || '') + '</div>' +
     (hasBody ? '<div class="lesson-chevron">▼</div>' : '') +
@@ -2490,11 +2486,13 @@ function lessonCard(l, num) {
 }
 
 var editingLessonId = null;
+var editingLessonClearNotes = false;
 function openModal() {
   editingLessonId = null;
+  editingLessonClearNotes = false;
   document.getElementById('lesson-modal-title').textContent = 'סיכום שיעור חדש';
   document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
-  ['m-topic','m-notes','m-summary','m-homework','m-link'].forEach(function(id) { document.getElementById(id).value = ''; });
+  ['m-topic','m-summary','m-homework','m-link'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('lesson-modal').classList.add('open');
 }
 function openEditLesson(id) {
@@ -2505,8 +2503,9 @@ function openEditLesson(id) {
     document.getElementById('lesson-modal-title').textContent = 'עריכת סיכום שיעור';
     document.getElementById('m-student').value = l.studentId || '';
     document.getElementById('m-date').value = l.date || '';
-    document.getElementById('m-topic').value = l.topic || '';
-    document.getElementById('m-notes').value = l.notes || '';
+    var timeOnlyNote = /^שעה\s*\d{1,2}:\d{2}$/.test(l.notes || '');
+    editingLessonClearNotes = !!(l.notes && !timeOnlyNote);
+    document.getElementById('m-topic').value = l.topic ? (editingLessonClearNotes ? l.topic + ' — ' + l.notes : l.topic) : (l.notes || '');
     document.getElementById('m-summary').value = l.summaryFull || '';
     document.getElementById('m-homework').value = l.homework || '';
     document.getElementById('m-link').value = l.link || '';
@@ -2530,12 +2529,12 @@ function saveLesson() {
     studentName: student ? (student.name || student.email) : '',
     date: date,
     topic: topic,
-    notes: document.getElementById('m-notes').value || '',
     summaryFull: document.getElementById('m-summary').value || '',
     homework: document.getElementById('m-homework').value || '',
     link: document.getElementById('m-link').value.trim() || '',
     mentorId: currentUser.uid
   };
+  if (editingLessonId && editingLessonClearNotes) data.notes = '';
   var p = editingLessonId
     ? db.collection('lessons').doc(editingLessonId).set(data, {merge:true})
     : db.collection('lessons').add(Object.assign({createdAt: firebase.firestore.FieldValue.serverTimestamp()}, data));
