@@ -658,6 +658,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
             <button class="tx-add-btn" onclick="openBookingModal()" style="background:var(--gray-700)">📥 ייבוא הזמנה</button>
             <button class="tx-add-btn" onclick="openNewStudentModal()">+ תלמיד</button>
             <button class="tx-add-btn" style="background:var(--gray-900)" onclick="emailAllStudents()">✉️ מייל לכולם</button>
+            <button class="tx-add-btn" style="background:#b45309" onclick="cleanDuplicateLessons()">🧹 נקה כפילויות</button>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
@@ -2129,7 +2130,7 @@ function processIncomingBookings() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           }).then(function(r) { return {id: r.id, name: name}; });
       jobs.push(sidP.then(function(st) {
-        return db.collection('lessons').add({
+        return db.collection('lessons').doc('bk_' + doc.id).set({
           studentId: st.id, studentName: st.name, date: date,
           topic: 'שיעור (נקבע דרך הבוילר)',
           notes: time ? 'שעה ' + time : '',
@@ -2143,6 +2144,32 @@ function processIncomingBookings() {
       if (count) alert('📥 יובאו אוטומטית ' + count + ' הזמנות חדשות מהמייל');
     });
   }).catch(function() {});
+}
+
+function cleanDuplicateLessons() {
+  if (!confirm('לסרוק את כל השיעורים ולמחוק כפילויות (אותו תלמיד, תאריך, נושא והערות)?')) return;
+  db.collection('lessons').get().then(function(snap) {
+    var groups = {};
+    snap.forEach(function(doc) {
+      var l = doc.data();
+      var key = (l.studentId || '') + '|' + (l.date || '') + '|' + (l.topic || '') + '|' + (l.notes || '');
+      groups[key] = groups[key] || [];
+      var ca = l.createdAt && l.createdAt.toMillis ? l.createdAt.toMillis() : 0;
+      groups[key].push({id: doc.id, createdAt: ca});
+    });
+    var toDelete = [];
+    Object.keys(groups).forEach(function(key) {
+      var items = groups[key];
+      if (items.length < 2) return;
+      items.sort(function(a, b) { return a.createdAt - b.createdAt; });
+      items.slice(1).forEach(function(it) { toDelete.push(it.id); });
+    });
+    if (!toDelete.length) { alert('לא נמצאו כפילויות 👍'); return; }
+    if (!confirm('נמצאו ' + toDelete.length + ' שיעורים כפולים. למחוק אותם?')) return;
+    Promise.all(toDelete.map(function(id) { return db.collection('lessons').doc(id).delete(); }))
+      .then(function() { alert('✅ נמחקו ' + toDelete.length + ' שיעורים כפולים'); })
+      .catch(function(e) { alert('שגיאה: ' + e.message); });
+  });
 }
 
 function closeStatModal() { document.getElementById('stat-modal').classList.remove('open'); }
@@ -2306,6 +2333,10 @@ function saveBooking() {
   if (!email && !name) { alert('נא למלא אימייל או שם'); return; }
 
   var existing = allStudents.find(function(x) { return email && (x.email || '').toLowerCase() === email; });
+  if (existing) {
+    var dupe = allLessonsAdmin.find(function(l) { return l.studentId === existing.id && l.date === date; });
+    if (dupe && !confirm('כבר יש שיעור רשום ל־' + adminName(existing) + ' בתאריך ' + date + ' (' + (dupe.topic || '') + '). לקבוע בכל זאת?')) return;
+  }
   var sidPromise;
   if (existing) {
     sidPromise = Promise.resolve({id: existing.id, name: adminName(existing)});
