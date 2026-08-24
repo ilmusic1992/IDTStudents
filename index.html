@@ -1649,25 +1649,45 @@ function gcalHref(name, email) {
   return url;
 }
 
-// פותח הזמנה ביומן גוגל, ובמקביל שואל על התאריך כדי לרשום את השיעור גם באתר
+function normalizeDateInput(s) {
+  s = (s || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})$/);
+  if (m) {
+    var d = m[1].padStart(2, '0'), mo = m[2].padStart(2, '0'), y = m[3].length === 2 ? '20' + m[3] : m[3];
+    return y + '-' + mo + '-' + d;
+  }
+  return null;
+}
+
+// שואל קודם כל (באותו טאב, לפני שהפוקוס עובר) על תאריך השיעור כדי לרשום אותו באתר, ורק אז פותח הזמנה ביומן גוגל
 function bookViaGcal(sid) {
   var st0 = allStudents.find(function(x) { return x.id === sid; });
   var name = st0 ? adminName(st0) : '';
   var email = st0 ? (st0.email || '') : '';
-  window.open(gcalHref(name, email), '_blank');
+  var gcalUrl = gcalHref(name, email);
   var today = new Date().toISOString().split('T')[0];
-  var date = prompt('באיזה תאריך תיאמת את השיעור עם ' + name + '? (יתווסף גם לאתר, מלא לביטול)', today);
-  if (!date) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('תאריך לא תקין — השיעור לא נשמר באתר (ההזמנה ביומן כבר נפתחה)'); return; }
+  var raw = prompt('באיזה תאריך נקבע השיעור עם ' + name + '? (יתווסף לרשימת השיעורים באתר. לחץ ביטול כדי רק לפתוח את יומן גוגל בלי לשמור באתר)', today);
+  if (raw === null) { window.open(gcalUrl, '_blank'); return; }
+  var date = normalizeDateInput(raw);
+  if (!date) {
+    alert('תאריך לא תקין (' + raw + ') — השיעור לא נשמר באתר. פותח את יומן גוגל בלבד.');
+    window.open(gcalUrl, '_blank');
+    return;
+  }
   var dupe = allLessonsAdmin.find(function(l) { return l.studentId === sid && l.date === date; });
-  if (dupe && !confirm('כבר יש שיעור רשום ל־' + name + ' בתאריך ' + date + '. להוסיף בכל זאת?')) return;
+  if (dupe && !confirm('כבר יש שיעור רשום ל־' + name + ' בתאריך ' + date + '. להוסיף בכל זאת?')) {
+    window.open(gcalUrl, '_blank');
+    return;
+  }
+  window.open(gcalUrl, '_blank');
   db.collection('lessons').add({
     studentId: sid, studentName: name, date: date,
     topic: 'שיעור (נקבע ביומן גוגל)',
     booked: true, autoImported: false,
     mentorId: currentUser.uid,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function() { alert('✅ השיעור נוסף גם באתר'); })
+  }).then(function() { alert('✅ השיעור נוסף גם לרשימת השיעורים באתר (' + date + ')'); })
     .catch(function(e) { alert('שגיאה בשמירת השיעור באתר: ' + e.message); });
 }
 
