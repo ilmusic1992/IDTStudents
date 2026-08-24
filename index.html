@@ -1649,6 +1649,28 @@ function gcalHref(name, email) {
   return url;
 }
 
+// פותח הזמנה ביומן גוגל, ובמקביל שואל על התאריך כדי לרשום את השיעור גם באתר
+function bookViaGcal(sid) {
+  var st0 = allStudents.find(function(x) { return x.id === sid; });
+  var name = st0 ? adminName(st0) : '';
+  var email = st0 ? (st0.email || '') : '';
+  window.open(gcalHref(name, email), '_blank');
+  var today = new Date().toISOString().split('T')[0];
+  var date = prompt('באיזה תאריך תיאמת את השיעור עם ' + name + '? (יתווסף גם לאתר, מלא לביטול)', today);
+  if (!date) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('תאריך לא תקין — השיעור לא נשמר באתר (ההזמנה ביומן כבר נפתחה)'); return; }
+  var dupe = allLessonsAdmin.find(function(l) { return l.studentId === sid && l.date === date; });
+  if (dupe && !confirm('כבר יש שיעור רשום ל־' + name + ' בתאריך ' + date + '. להוסיף בכל זאת?')) return;
+  db.collection('lessons').add({
+    studentId: sid, studentName: name, date: date,
+    topic: 'שיעור (נקבע ביומן גוגל)',
+    booked: true, autoImported: false,
+    mentorId: currentUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() { alert('✅ השיעור נוסף גם באתר'); })
+    .catch(function(e) { alert('שגיאה בשמירת השיעור באתר: ' + e.message); });
+}
+
 function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
@@ -1800,14 +1822,13 @@ function renderStudentsList() {
     if (s.studentType) meta.push(s.studentType);
     if (s.email) meta.push(s.email);
     var waLink = waHref(s.phone, n);
-    var gcalLink = gcalHref(n, s.email);
     html += '<div class="student-card" onclick="openStudentModal(\'' + s.id + '\')" style="cursor:pointer">' +
       '<div class="student-avatar">' + escapeHtmlTx(n.charAt(0).toUpperCase()) + '</div>' +
       '<div class="student-info"><div class="student-name">' + escapeHtmlTx(n) + badge + '</div>' +
       '<div class="student-meta">' + escapeHtmlTx(meta.join(' · ')) + '</div>' +
       (total > 0 ? '<div class="s-progress"><div class="s-progress-fill" style="width:' + pct + '%"></div></div>' : '') +
       '</div>' +
-      '<a href="' + gcalLink + '" target="_blank" onclick="event.stopPropagation()" title="קבע שיעור ביומן גוגל" style="color:#4285F4;font-size:20px;text-decoration:none;padding:4px 6px">📅</a>' +
+      '<a href="#" onclick="event.stopPropagation();event.preventDefault();bookViaGcal(\'' + s.id + '\')" title="קבע שיעור ביומן גוגל (ויתווסף לאתר)" style="color:#4285F4;font-size:20px;text-decoration:none;padding:4px 6px">📅</a>' +
       (waLink ? '<a href="' + waLink + '" target="_blank" onclick="event.stopPropagation()" title="שלח הודעה בוואטסאפ" style="color:#25D366;font-size:20px;text-decoration:none;padding:4px 6px">💬</a>' : '') +
       '<div class="s-count">' + used + (total > 0 ? '/' + total : '') + '</div>' +
       '</div>';
@@ -1939,7 +1960,7 @@ function openStudentModal(id) {
   if (waLink) { waBtn.href = waLink; waBtn.style.display = 'block'; }
   else { waBtn.style.display = 'none'; }
   var gcalBtn = document.getElementById('sm-gcal-btn');
-  gcalBtn.href = gcalHref(adminName(st0), st0.email);
+  gcalBtn.onclick = function(e) { e.preventDefault(); bookViaGcal(id); };
   gcalBtn.style.display = 'block';
   var st = lessonStats[id] || {count:0};
   document.getElementById('sm-lessons-info').textContent = 'ניצל ' + usedLessons(st0, st) + (st0.totalLessons ? ' מתוך ' + st0.totalLessons : '') + ' שיעורים' + (st.last ? ' · שיעור אחרון: ' + st.last : '') + (st0.expiry ? ' · תוקף עד ' + st0.expiry : '');
