@@ -2149,6 +2149,7 @@ function processIncomingBookings() {
   db.collection('bookings').where('status', '==', 'new').get().then(function(snap) {
     if (snap.empty) return;
     var count = 0, jobs = [];
+    var pendingByEmail = {}; // מונע יצירת תלמיד כפול כשיש כמה הזמנות חדשות לאותו מייל חדש באותה ריצה
     snap.forEach(function(doc) {
       var b = doc.data();
       var p = parseBookingText(b.rawText || '');
@@ -2159,22 +2160,38 @@ function processIncomingBookings() {
       if (!date) { jobs.push(doc.ref.update({status: 'error'})); return; }
       count++;
       var existing = allStudents.find(function(x) { return email && (x.email || '').toLowerCase() === email; });
-      var sidP = existing
-        ? Promise.resolve({id: existing.id, name: adminName(existing)})
-        : db.collection('users').add({
-            name: name, email: email, phone: b.phone || p.phone || '',
-            role: 'student', manual: true,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }).then(function(r) { return {id: r.id, name: name}; });
-      jobs.push(sidP.then(function(st) {
-        return db.collection('lessons').doc('bk_' + doc.id).set({
-          studentId: st.id, studentName: st.name, date: date,
-          topic: 'שיעור (נקבע דרך הבוילר)',
-          notes: time ? 'שעה ' + time : '',
-          booked: true, autoImported: true,
-          mentorId: currentUser.uid,
+      var sidP;
+      if (existing) {
+        sidP = Promise.resolve({id: existing.id, name: adminName(existing)});
+      } else if (email && pendingByEmail[email]) {
+        sidP = pendingByEmail[email];
+      } else {
+        sidP = db.collection('users').add({
+          name: name, email: email, phone: b.phone || p.phone || '',
+          role: 'student', manual: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(function() { return doc.ref.update({status: 'done'}); });
+        }).then(function(r) { return {id: r.id, name: name}; });
+        if (email) pendingByEmail[email] = sidP;
+      }
+      jobs.push(sidP.then(function(st) {
+        return db.collection('lessons').where('studentId', '==', st.id).where('date', '==', date).get().then(function(existingSnap) {
+          var dupeFound = false;
+          existingSnap.forEach(function(ld) {
+            if (ld.id === 'bk_' + doc.id) return;
+            var ldata = ld.data();
+            var sameTime = !time || (ldata.notes || '').indexOf(time) !== -1;
+            if (sameTime) dupeFound = true;
+          });
+          if (dupeFound) return doc.ref.update({status: 'done'});
+          return db.collection('lessons').doc('bk_' + doc.id).set({
+            studentId: st.id, studentName: st.name, date: date,
+            topic: 'שיעור (נקבע דרך הבוילר)',
+            notes: time ? 'שעה ' + time : '',
+            booked: true, autoImported: true,
+            mentorId: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(function() { return doc.ref.update({status: 'done'}); });
+        });
       }));
     });
     Promise.all(jobs).then(function() {
@@ -2201,10 +2218,30 @@ function cleanDuplicateLessons() {
       items.sort(function(a, b) { return a.createdAt - b.createdAt; });
       items.slice(1).forEach(function(it) { toDelete.push(it.id); });
     });
-    if (!toDelete.length) { alert('לא נמצאו כפילויות 👍'); return; }
-    if (!confirm('נמצאו ' + toDelete.length + ' שיעורים כפולים. למחוק אותם?')) return;
+    // בדיקה נוספת: שיעורים זהים (שם, תאריך, נושא, הערות) אבל עם studentId שונה —
+    // סימן לתלמיד כפול שנוצר בטעות (למשל מריצה כפולה של הבוילר). לא נמחק אוטומטית, רק מדווחים.
+    var nameGroups = {};
+    snap.forEach(function(doc) {
+      var l = doc.data();
+      if (toDelete.indexOf(doc.id) !== -1) return;
+      var nkey = (l.studentName || '') + '|' + (l.date || '') + '|' + (l.topic || '') + '|' + (l.notes || '');
+      nameGroups[nkey] = nameGroups[nkey] || {};
+      nameGroups[nkey][l.studentId || ''] = true;
+    });
+    var suspectedDupeStudents = Object.keys(nameGroups).filter(function(k) { return Object.keys(nameGroups[k]).length > 1 && k.split('|')[0]; });
+
+    if (!toDelete.length) {
+      if (suspectedDupeStudents.length) {
+        alert('לא נמצאו שיעורים כפולים לגמרי, אבל יש ' + suspectedDupeStudents.length + ' מקרים שנראים כמו תלמיד כפול (אותו שם/מייל ותאריך, אבל שני כרטיסי תלמיד שונים):\n\n' + suspectedDupeStudents.map(function(k) { return k.split('|')[0] + ' · ' + k.split('|')[1]; }).join('\n') + '\n\nכדאי לבדוק ידנית בעמוד התלמידים.');
+      } else {
+        alert('לא נמצאו כפילויות 👍');
+      }
+      return;
+    }
+    var extraWarning = suspectedDupeStudents.length ? ('\n\nבנוסף נמצאו ' + suspectedDupeStudents.length + ' מקרים שנראים כמו תלמיד כפול (שני כרטיסים לאותו אדם) — אלה לא יימחקו אוטומטית, כדאי לבדוק ידנית: ' + suspectedDupeStudents.map(function(k) { return k.split('|')[0]; }).join(', ')) : '';
+    if (!confirm('נמצאו ' + toDelete.length + ' שיעורים כפולים. למחוק אותם?' + extraWarning)) return;
     Promise.all(toDelete.map(function(id) { return db.collection('lessons').doc(id).delete(); }))
-      .then(function() { alert('✅ נמחקו ' + toDelete.length + ' שיעורים כפולים'); })
+      .then(function() { alert('✅ נמחקו ' + toDelete.length + ' שיעורים כפולים' + extraWarning); })
       .catch(function(e) { alert('שגיאה: ' + e.message); });
   });
 }
