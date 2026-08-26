@@ -1058,26 +1058,31 @@ canvas { width:100% !important; display:block; border-radius:8px; }
     <div class="calc-title">🎯 מחשבון יעד שנתי</div>
   </div>
   <div class="calc-content">
-    <div class="input-row"><label>יעד שנתי (₪)</label><input type="number" id="g-annual" value="1000000" oninput="calcGoal()"></div>
-    <div class="input-row"><label>שער דולר (₪)</label><input type="number" id="g-rate" value="3.7" step="0.01" oninput="calcGoal()"></div>
-    <div class="checkbox-row"><input type="checkbox" id="g-friday" onchange="calcGoal()"><label for="g-friday">כולל יום שישי</label></div>
-    <div class="input-row"><label>עסקאות ביום</label><input type="number" id="g-tday" value="3" oninput="calcGoal()"></div>
-    <div class="input-row"><label>כמות תיקים</label><input type="number" id="g-acc" value="1" oninput="calcGoal()"></div>
-    <div class="input-row"><label>אחוז הצלחה (%)</label><input type="number" id="g-wr" value="50" oninput="calcGoal()"></div>
-    <div class="input-row"><label>יחס R:R</label><input type="number" id="g-rr" value="2" step="0.1" oninput="calcGoal()"></div>
+    <div class="input-row"><label>יעד שנתי (₪, נטו)</label><input type="number" id="g-annual" value="1000000" oninput="calcGoal()"></div>
+    <div class="input-row"><label>שער הדולר (₪ ל-$1)</label><input type="number" id="g-rate" value="3.1" step="0.01" oninput="calcGoal()"></div>
+    <div class="input-row"><label>ימי מסחר בשבוע</label><input type="number" id="g-days" value="4" min="1" max="7" oninput="calcGoal()"></div>
+    <div class="input-row"><label>עסקאות ביום</label><input type="number" id="g-tday" value="4" min="1" oninput="calcGoal()"></div>
+    <div class="input-row"><label>אחוז הצלחה (%)</label><input type="number" id="g-wr" value="56" min="1" max="99" oninput="calcGoal()"></div>
+    <div class="input-row"><label>יחס סיכון : סיכוי (R)</label><input type="number" id="g-rr" value="1.5" step="0.1" min="0.1" oninput="calcGoal()"></div>
+    <div class="input-row"><label>מספר תיקי נוסטרו (חשבונות במקביל)</label><input type="number" id="g-acc" value="4" min="1" oninput="calcGoal()"></div>
+    <div class="checkbox-row"><input type="checkbox" id="g-copy" checked onchange="calcGoal()"><label for="g-copy">קופי — משכפל את העסקה לכל התיקים</label></div>
+    <div class="input-row"><label>הוצאות עסק לחודש ($)</label><input type="number" id="g-expenses" value="1000" min="0" oninput="calcGoal()"></div>
 
     <div class="result-big">
       <div class="result-label">יעד שנתי בדולר</div>
       <div class="result-num" id="g-r-annual">$0</div>
     </div>
     <div class="results-grid">
-      <div class="result-sm"><div class="r-label">חודשי</div><div class="r-val" id="g-r-monthly">$0</div></div>
+      <div class="result-sm"><div class="r-label">חודשי נטו</div><div class="r-val" id="g-r-monthnet">$0</div></div>
+      <div class="result-sm"><div class="r-label">הוצאות עסק</div><div class="r-val" id="g-r-exp">$0</div></div>
+      <div class="result-sm"><div class="r-label">חודשי ברוטו</div><div class="r-val" id="g-r-monthly">$0</div></div>
       <div class="result-sm"><div class="r-label">שבועי</div><div class="r-val" id="g-r-weekly">$0</div></div>
-      <div class="result-sm"><div class="r-label">יומי</div><div class="r-val" id="g-r-daily">$0</div></div>
-      <div class="result-sm"><div class="r-label">לעסקה</div><div class="r-val" id="g-r-trade">$0</div></div>
+      <div class="result-sm"><div class="r-label" id="g-r-day-label">יומי</div><div class="r-val" id="g-r-daily">$0</div></div>
       <div class="result-sm"><div class="r-label">סיכון לעסקה</div><div class="r-val" id="g-r-risk">$0</div></div>
-      <div class="result-sm"><div class="r-label">סיכון לתיק</div><div class="r-val" id="g-r-riskac">$0</div></div>
+      <div class="result-sm"><div class="r-label" id="g-r-riskac-label">סיכון לתיק</div><div class="r-val" id="g-r-riskac">$0</div></div>
     </div>
+    <div id="g-warn" style="display:none;margin-bottom:14px;padding:11px 13px;border-radius:10px;background:var(--red-light);color:var(--red);font-size:13.5px;font-weight:600;line-height:1.5">התוחלת שלילית — עם אחוז ההצלחה ויחס הסיכון:סיכוי האלה המערכת מפסידה לאורך זמן, אז אי אפשר להגיע ליעד. תעלה את אחוז ההצלחה או את היחס.</div>
+    <button type="button" onclick="resetGoalCalc()" style="width:100%;padding:11px;border:1.5px solid var(--gray-300);border-radius:10px;background:#fff;color:var(--gray-500);font-family:Heebo,sans-serif;font-size:13px;font-weight:600;cursor:pointer">אפס לתרחיש ברירת המחדל</button>
   </div>
 </div>
 
@@ -3519,29 +3524,59 @@ function hideCalc() {
 // -- GOAL --
 function calcGoal() {
   var annual = parseFloat(document.getElementById('g-annual').value) || 0;
-  var rate = parseFloat(document.getElementById('g-rate').value) || 3.7;
-  var friday = document.getElementById('g-friday').checked;
-  var tday = parseFloat(document.getElementById('g-tday').value) || 3;
+  var rate = parseFloat(document.getElementById('g-rate').value) || 3.1;
+  var days = parseFloat(document.getElementById('g-days').value) || 4;
+  var tday = parseFloat(document.getElementById('g-tday').value) || 4;
   var acc = parseFloat(document.getElementById('g-acc').value) || 1;
-  var wr = (parseFloat(document.getElementById('g-wr').value) || 50) / 100;
-  var rr = parseFloat(document.getElementById('g-rr').value) || 2;
+  var wr = (parseFloat(document.getElementById('g-wr').value) || 56) / 100;
+  var rr = parseFloat(document.getElementById('g-rr').value) || 1.5;
+  var copy = document.getElementById('g-copy').checked;
+  var expenses = parseFloat(document.getElementById('g-expenses').value) || 0;
 
   var annUSD = annual / rate;
-  var monthly = annUSD / 12;
-  var weekly = monthly / 4;
-  var daily = weekly / (friday ? 6 : 5);
+  var monthNet = annUSD / 12;
+  var monthGross = monthNet + expenses;
+  var weekly = monthGross / 4;
+  var daily = weekly / days;
   var perTrade = daily / tday;
   var exp = wr * rr - (1 - wr);
-  var risk = exp > 0 ? perTrade / exp : 0;
+  var riskTotal = exp > 0 ? perTrade / exp : 0;
+  var riskPerAcct = copy ? riskTotal / acc : riskTotal;
 
   function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+  document.getElementById('g-r-day-label').textContent = 'יומי (÷ ' + days + ' ימים)';
+  document.getElementById('g-r-riskac-label').textContent = copy ? 'סיכון לכל תיק' : 'סיכון לתיק (בלי קופי)';
+
   document.getElementById('g-r-annual').textContent = fmt(annUSD);
-  document.getElementById('g-r-monthly').textContent = fmt(monthly);
+  document.getElementById('g-r-monthnet').textContent = fmt(monthNet);
+  document.getElementById('g-r-exp').textContent = '+ ' + fmt(expenses);
+  document.getElementById('g-r-monthly').textContent = fmt(monthGross);
   document.getElementById('g-r-weekly').textContent = fmt(weekly);
   document.getElementById('g-r-daily').textContent = fmt(daily);
-  document.getElementById('g-r-trade').textContent = fmt(perTrade);
-  document.getElementById('g-r-risk').textContent = fmt(risk);
-  document.getElementById('g-r-riskac').textContent = fmt(risk / acc);
+
+  var warnEl = document.getElementById('g-warn');
+  if (exp > 0) {
+    warnEl.style.display = 'none';
+    document.getElementById('g-r-risk').textContent = fmt(riskTotal);
+    document.getElementById('g-r-riskac').textContent = fmt(riskPerAcct);
+  } else {
+    warnEl.style.display = annual > 0 ? 'block' : 'none';
+    document.getElementById('g-r-risk').textContent = '$0';
+    document.getElementById('g-r-riskac').textContent = '$0';
+  }
+}
+
+function resetGoalCalc() {
+  document.getElementById('g-annual').value = 1000000;
+  document.getElementById('g-rate').value = 3.1;
+  document.getElementById('g-days').value = 4;
+  document.getElementById('g-tday').value = 4;
+  document.getElementById('g-wr').value = 56;
+  document.getElementById('g-rr').value = 1.5;
+  document.getElementById('g-acc').value = 4;
+  document.getElementById('g-copy').checked = true;
+  document.getElementById('g-expenses').value = 1000;
+  calcGoal();
 }
 
 // -- RR TABLE --
