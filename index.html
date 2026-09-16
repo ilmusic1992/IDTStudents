@@ -726,6 +726,15 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <select id="filter-student" onchange="loadLessons()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;">
           <option value="">כל הסטודנטים</option>
         </select>
+        <input type="text" id="ls-search" placeholder="🔍 חיפוש לפי שם תלמיד..." oninput="renderLessonsList()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;margin-top:8px">
+        <select id="ls-sort" onchange="renderLessonsList()" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:Heebo,sans-serif;font-size:14px;outline:none;margin-top:8px">
+          <option value="desc">תאריך: חדש ← ישן</option>
+          <option value="asc">תאריך: ישן ← חדש</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:600;cursor:pointer">
+          <input type="checkbox" id="ls-unsummarized" onchange="renderLessonsList()" style="width:16px;height:16px;accent-color:var(--green);flex-shrink:0">
+          רק שיעורים בלי סיכום מלא (שאני חייב להם סיכום)
+        </label>
       </div>
       <div id="lessons-list"></div>
       <div class="empty-state" id="lessons-empty" style="display:none">
@@ -2512,6 +2521,7 @@ function loadStudentHome() {
 // ============================================================
 // LESSONS
 // ============================================================
+var lessonsViewRaw = [];
 function loadLessons() {
   var sid = isAdmin && document.getElementById('filter-student') ? document.getElementById('filter-student').value : '';
   var q = sid
@@ -2519,24 +2529,46 @@ function loadLessons() {
     : (isAdmin ? db.collection('lessons') : db.collection('lessons').where('studentId','==',currentUser.uid));
 
   q.onSnapshot(function(snap) {
-    var lessons = [];
-    snap.forEach(function(doc) { lessons.push(Object.assign({id:doc.id}, doc.data())); });
-    lessons.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-
-    var seqMap = {}, counters = {};
-    lessons.slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }).forEach(function(l) {
-      counters[l.studentId] = (counters[l.studentId] || 0) + 1;
-      seqMap[l.id] = counters[l.studentId];
-    });
-    var html = '';
-    lessons.forEach(function(l) { html += lessonCard(l, seqMap[l.id] || 1); });
-    var list = document.getElementById('lessons-list');
-    var empty = document.getElementById('lessons-empty');
-    if (lessons.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; }
-    else { list.innerHTML = html; empty.style.display = 'none'; }
-
-
+    lessonsViewRaw = [];
+    snap.forEach(function(doc) { lessonsViewRaw.push(Object.assign({id:doc.id}, doc.data())); });
+    renderLessonsList();
   });
+}
+
+function renderLessonsList() {
+  // מספור רציף לכל תלמיד מחושב תמיד על הסט המלא (לא מושפע מחיפוש/סינון), כדי שהמספור לא יקפוץ
+  var seqMap = {}, counters = {};
+  lessonsViewRaw.slice().sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); }).forEach(function(l) {
+    counters[l.studentId] = (counters[l.studentId] || 0) + 1;
+    seqMap[l.id] = counters[l.studentId];
+  });
+
+  var lessons = lessonsViewRaw.slice();
+
+  var searchEl = document.getElementById('ls-search');
+  var search = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  if (search) {
+    lessons = lessons.filter(function(l) { return (l.studentName || '').toLowerCase().indexOf(search) !== -1; });
+  }
+
+  var unsumEl = document.getElementById('ls-unsummarized');
+  if (unsumEl && unsumEl.checked) {
+    lessons = lessons.filter(function(l) { return !l.summaryFull; });
+  }
+
+  var sortEl = document.getElementById('ls-sort');
+  var sortDir = sortEl ? sortEl.value : 'desc';
+  lessons.sort(function(a, b) {
+    var cmp = (a.date || '').localeCompare(b.date || '');
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  var html = '';
+  lessons.forEach(function(l) { html += lessonCard(l, seqMap[l.id] || 1); });
+  var list = document.getElementById('lessons-list');
+  var empty = document.getElementById('lessons-empty');
+  if (lessons.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; }
+  else { list.innerHTML = html; empty.style.display = 'none'; }
 }
 
 function lessonCard(l, num) {
