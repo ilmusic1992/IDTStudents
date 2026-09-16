@@ -2535,6 +2535,14 @@ function loadLessons() {
   });
 }
 
+// שיעור "חייב סיכום" רק אם אין לו גם סיכום מלא וגם אין נושא אמיתי (רק כותרת גנרית/ריקה)
+var GENERIC_LESSON_TOPICS = ['', 'שיעור', 'שיעור (נקבע דרך הבוילר)', 'שיעור (נקבע ביומן גוגל)'];
+function lessonNeedsSummary(l) {
+  if (l.summaryFull) return false;
+  var t = (l.topic || '').trim();
+  return GENERIC_LESSON_TOPICS.indexOf(t) !== -1;
+}
+
 function renderLessonsList() {
   // מספור רציף לכל תלמיד מחושב תמיד על הסט המלא (לא מושפע מחיפוש/סינון), כדי שהמספור לא יקפוץ
   var seqMap = {}, counters = {};
@@ -2553,7 +2561,7 @@ function renderLessonsList() {
 
   var unsumEl = document.getElementById('ls-unsummarized');
   if (unsumEl && unsumEl.checked) {
-    lessons = lessons.filter(function(l) { return !l.summaryFull; });
+    lessons = lessons.filter(lessonNeedsSummary);
   }
 
   var sortEl = document.getElementById('ls-sort');
