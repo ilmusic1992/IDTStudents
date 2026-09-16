@@ -2556,7 +2556,15 @@ function renderLessonsList() {
   var searchEl = document.getElementById('ls-search');
   var search = searchEl ? searchEl.value.trim().toLowerCase() : '';
   if (search) {
-    lessons = lessons.filter(function(l) { return (l.studentName || '').toLowerCase().indexOf(search) !== -1; });
+    var studentLookupById = {};
+    (allStudents || []).forEach(function(s) {
+      studentLookupById[s.id] = ((s.name || '') + ' ' + (s.nickname || '') + ' ' + (s.email || '')).toLowerCase();
+    });
+    lessons = lessons.filter(function(l) {
+      var nameMatch = (l.studentName || '').toLowerCase().indexOf(search) !== -1;
+      var studentMatch = (studentLookupById[l.studentId] || '').indexOf(search) !== -1;
+      return nameMatch || studentMatch;
+    });
   }
 
   var unsumEl = document.getElementById('ls-unsummarized');
