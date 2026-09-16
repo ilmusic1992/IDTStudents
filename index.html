@@ -547,6 +547,73 @@ body {
 .mc-s-label { font-size:10px; color:#9ca3af; }
 .mc-s-val { font-size:19px; font-weight:800; color:#e5e7eb; }
 
+/* ===== LEVEL TEST (IDT LEARNING ENGINE) ===== */
+.lt-slide { animation: ltSlideIn .28s ease; }
+@keyframes ltSlideIn { from{opacity:0; transform:translateX(10px);} to{opacity:1; transform:translateX(0);} }
+.lt-intro-title { font-size:21px; font-weight:900; color:#e5e7eb; line-height:1.4; margin-bottom:14px; }
+.lt-intro-body { font-size:14px; color:#9ca3af; line-height:1.7; margin-bottom:24px; }
+.lt-intro-meta { text-align:center; font-size:12px; color:#6b7280; margin-top:10px; }
+.lt-progress-wrap { margin-bottom:22px; }
+.lt-progress-label { display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:#4ade80; letter-spacing:.5px; margin-bottom:7px; }
+.lt-progress-track { height:6px; background:#1a1d27; border:1px solid #2d3045; border-radius:99px; overflow:hidden; }
+.lt-progress-fill { height:100%; background:linear-gradient(90deg,#16a34a,#4ade80); border-radius:99px; transition:width .35s ease; }
+.lt-cat-tag { display:inline-block; font-size:10.5px; font-weight:700; color:#6b7280; letter-spacing:.5px; margin-bottom:10px; text-transform:uppercase; }
+.lt-question { font-size:18px; font-weight:800; color:#e5e7eb; line-height:1.55; margin-bottom:22px; }
+.lt-answers { display:flex; flex-direction:column; gap:10px; }
+.lt-answer {
+  background:#1a1d27; border:1.5px solid #2d3045; border-radius:12px;
+  padding:14px 15px; display:flex; align-items:center; gap:11px; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, background .15s; font-size:14.5px; color:#e5e7eb; line-height:1.4;
+}
+.lt-answer:hover { border-color:#4ade80; }
+.lt-answer.selected { border-color:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.15); background:#16241c; }
+.lt-answer-letter {
+  flex-shrink:0; width:26px; height:26px; border-radius:7px; background:#2d3045;
+  display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#9ca3af;
+}
+.lt-answer.selected .lt-answer-letter { background:#16a34a; color:#fff; }
+.lt-answer-check { margin-right:auto; margin-left:0; color:#4ade80; font-weight:900; opacity:0; transition:opacity .15s; }
+.lt-answer.selected .lt-answer-check { opacity:1; }
+.lt-back-link { margin-top:20px; text-align:center; font-size:13px; color:#6b7280; cursor:pointer; font-weight:600; }
+.lt-back-link:hover { color:#4ade80; }
+.lt-analyzing { text-align:center; padding:70px 20px; color:#9ca3af; font-size:14.5px; font-weight:600; }
+.lt-spinner { width:34px; height:34px; border:3px solid #2d3045; border-top-color:#4ade80; border-radius:50%; margin:0 auto 18px; animation:ltSpin .8s linear infinite; }
+@keyframes ltSpin { to{transform:rotate(360deg);} }
+.lt-score-hero { background:#1a1d27; border:1px solid #2d3045; border-radius:14px; padding:24px; text-align:center; margin-bottom:18px; }
+.lt-score-big { font-size:44px; font-weight:900; color:#4ade80; }
+.lt-score-sub { font-size:13.5px; color:#e5e7eb; margin-top:8px; font-weight:700; line-height:1.5; }
+.lt-cat-bar-row { margin-bottom:13px; }
+.lt-cat-bar-label { display:flex; justify-content:space-between; font-size:12.5px; color:#9ca3af; margin-bottom:5px; font-weight:600; }
+.lt-cat-bar-track { height:8px; background:#1a1d27; border:1px solid #2d3045; border-radius:99px; overflow:hidden; }
+.lt-cat-bar-fill { height:100%; border-radius:99px; transition:width .5s ease; }
+.lt-cat-bar-fill.ok { background:#4ade80; }
+.lt-cat-bar-fill.weak { background:#f87171; }
+.lt-weak-note { background:#2a1a1a; border:1px solid #7f1d1d; color:#fca5a5; border-radius:10px; padding:12px 14px; font-size:13px; font-weight:600; margin:16px 0; line-height:1.6; }
+.lt-track-pill { display:inline-block; background:#16241c; border:1px solid #16a34a; color:#4ade80; font-size:12px; font-weight:700; padding:4px 11px; border-radius:99px; margin-top:8px; }
+.lt-student-item {
+  background:#1a1d27; border:1px solid #2d3045; border-radius:10px; padding:13px 14px; margin-bottom:8px;
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center; color:#e5e7eb; font-size:14px; font-weight:600;
+  transition:border-color .15s;
+}
+.lt-student-item:hover { border-color:#4ade80; }
+.lt-student-item .arrow { color:#6b7280; font-size:14px; }
+.lt-attempt-row {
+  background:#1a1d27; border:1px solid #2d3045; border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer;
+  transition:border-color .15s;
+}
+.lt-attempt-row:hover { border-color:#4ade80; }
+.lt-attempt-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+.lt-attempt-name { font-size:14px; font-weight:700; color:#e5e7eb; }
+.lt-attempt-score { font-size:15px; font-weight:900; color:#4ade80; }
+.lt-attempt-meta { font-size:11.5px; color:#6b7280; }
+.lt-wrong-card { background:#1a1d27; border:1px solid #2d3045; border-radius:10px; padding:13px 14px; margin-bottom:9px; }
+.lt-wrong-q { font-size:13.5px; font-weight:700; color:#e5e7eb; margin-bottom:7px; line-height:1.5; }
+.lt-wrong-ans { font-size:12.5px; color:#f87171; margin-bottom:3px; font-weight:600; }
+.lt-wrong-correct { font-size:12.5px; color:#4ade80; font-weight:600; }
+.lt-section-lbl { font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin:18px 0 9px; }
+.lt-section-lbl:first-child { margin-top:0; }
+.lt-empty { text-align:center; padding:30px 15px; color:#6b7280; font-size:13.5px; }
+
 /* ===== EMPTY STATE ===== */
 .empty-state { text-align:center; padding:40px 20px; color:var(--gray-500); }
 .empty-icon { font-size:38px; margin-bottom:10px; }
@@ -841,6 +908,7 @@ canvas { width:100% !important; display:block; border-radius:8px; }
         <div class="ext-card" onclick="showCalc('consistency')"><div class="ext-icon">🎲</div><div class="ext-name">מחשבון עקביות</div></div>
         <div class="ext-card" onclick="showCalc('mc')"><div class="ext-icon">🏦</div><div class="ext-name">שרידות תיק ממומן</div></div>
         <div class="ext-card" onclick="showCalc('expectations')"><div class="ext-icon">📋</div><div class="ext-name">תיאום ציפיות</div></div>
+        <div class="ext-card" id="ext-leveltest" onclick="showCalc('leveltest')" style="display:none;border:1.5px solid #16a34a"><div class="ext-icon">🎓</div><div class="ext-name">מבחן רמה | מכינה לקורס חוזים</div></div>
       </div>
 
       <div class="section-title">צור קשר</div>
@@ -890,6 +958,15 @@ canvas { width:100% !important; display:block; border-radius:8px; }
       כלים<div class="nav-dot"></div>
     </div>
   </nav>
+</div>
+
+<!-- ====== LEVEL TEST (IDT LEARNING ENGINE) ====== -->
+<div class="calc-screen mc-dark" id="calc-leveltest">
+  <div class="mc-calc-header">
+    <button class="mc-back" onclick="ltBackNav()">‹</button>
+    <div class="mc-head-title">🎓 מבחן רמה | מכינה לקורס חוזים</div>
+  </div>
+  <div class="mc-content" id="lt-content"></div>
 </div>
 
 <!-- ====== CALC: GOAL ====== -->
@@ -1591,6 +1668,7 @@ function initApp() {
   document.getElementById('fab-add').style.display = isAdmin ? 'flex' : 'none';
   document.getElementById('lessons-admin-filter').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('trading-admin-filter').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('ext-leveltest').style.display = isAdmin ? 'block' : 'none';
   if (isAdmin) loadStudents();
   else loadStudentHome();
 
@@ -3517,6 +3595,7 @@ function showCalc(name) {
   if (name === 'contracts') calcContracts();
   if (name === 'altwr') calcAltWR();
   if (name === 'expectations') initExpectations();
+  if (name === 'leveltest') initLevelTest();
 }
 
 function initExpectations() {
@@ -3563,10 +3642,317 @@ function saveExpectations() {
 var expModalStudentId = null;
 
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators','expectations'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators','expectations','leveltest'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
+}
+
+// ============================================================
+// LEVEL TEST — IDT LEARNING ENGINE
+// (מבחן רמה | מכינה לקורס חוזים — engine reusable for מכינה/Checkpoints/מבחן סיום)
+// ============================================================
+var LT_CATEGORIES = {
+  market:    { label: 'שוק ההון',  full: 'יסודות שוק ההון' },
+  charts:    { label: 'גרפים',     full: 'גרפים ונרות' },
+  longshort: { label: 'Long/Short', full: 'Long / Short' },
+  orders:    { label: 'פקודות',    full: 'פקודות ותנועת מחיר' },
+  risk:      { label: 'סיכון',     full: 'סיכון ומוכנות לחוזים' }
+};
+
+var LT_SEED_QUESTIONS = [
+  { id:'q1', category:'market', question:'מהי מניה?', answers:['הלוואה שניתנת לחברה','יחידת בעלות בחברה ציבורית','מסמך המבטיח תשואה קבועה','חוזה בין שני סוחרים'], correctIndex:1, difficulty:'basic', explanation:'מניה מייצגת בעלות חלקית בחברה ציבורית — לא הלוואה ולא הבטחת תשואה.', active:true },
+  { id:'q2', category:'market', question:'מהו מדד כמו Nasdaq 100?', answers:['מניה בודדת של חברת טכנולוגיה','קרן שמבטיחה רווח קבוע','אוסף מניות שמייצג קבוצת חברות','סוג של אג"ח ממשלתי'], correctIndex:2, difficulty:'basic', explanation:'מדד הוא אוסף מניות שמייצג קבוצת חברות בענף או בשוק מסוים.', active:true },
+  { id:'q3', category:'market', question:'Apple היא חברה ו־AAPL היא המניה שלה. מהו Nasdaq 100 ביחס אליה?', answers:['שם נוסף למניית Apple','הבורסה שבה Apple נסחרת','מדד ש־Apple יכולה להיכלל בו','חברת האם של Apple'], correctIndex:2, difficulty:'medium', explanation:'Nasdaq 100 הוא מדד שחברות כמו Apple יכולות להיכלל בו לפי קריטריונים מסוימים.', active:true },
+  { id:'q4', category:'market', question:'מה ההבדל בין שוק ראשוני לשוק משני?', answers:['בראשוני מונפקים נכסים חדשים; במשני נסחרים נכסים שכבר הונפקו','בראשוני נסחרים נכסים ישנים; במשני מונפקים נכסים חדשים','אין הבדל מעשי בין השניים','השוק הראשוני מיועד רק למוסדיים'], correctIndex:0, difficulty:'medium', explanation:'בשוק הראשוני מונפקים ניירות ערך חדשים; בשוק המשני נסחרים ניירות שכבר קיימים.', active:true },
+  { id:'q5', category:'charts', question:'אילו ארבעה מחירים מציג נר יפני?', answers:['Open, Close, Volume, Average','High, Low, Volume, Spread','Open, High, Low, Close','Bid, Ask, Spread, Close'], correctIndex:2, difficulty:'basic', explanation:'כל נר מציג ארבעה נתונים: מחיר פתיחה, שיא, שפל וסגירה (Open, High, Low, Close).', active:true },
+  { id:'q6', category:'charts', question:'מה המשמעות של נר ב־Time Frame של 5 דקות?', answers:['כל נר מייצג עסקה בודדת שנמשכה 5 דקות','הוא מסכם חמש דקות של תנועת מחיר','הנר מתעדכן פעם ב־5 שעות','זהו פרק הזמן שבו אסור לסחור'], correctIndex:1, difficulty:'medium', explanation:'נר ב-Time Frame של 5 דקות מסכם את כל תנועת המחיר באותן חמש דקות.', active:true },
+  { id:'q7', category:'charts', question:'נר נפתח ב־100, הגיע ל־108, ירד עד 98 ונסגר ב־106. מהו ה־High?', answers:['100','106','98','108'], correctIndex:3, difficulty:'hard', explanation:'ה-High הוא המחיר הגבוה ביותר שהנר נגע בו — כאן 108.', active:true },
+  { id:'q8', category:'charts', question:'מה מאפיין מגמת עלייה?', answers:['שיאים ושפלים יורדים','מחיר קבוע לאורך זמן','שיאים ושפלים עולים','תנודתיות גבוהה בלבד'], correctIndex:2, difficulty:'medium', explanation:'מגמת עלייה מאופיינת בשיאים ושפלים עולים לאורך זמן.', active:true },
+  { id:'q9', category:'longshort', question:'קנית ב־100 ומכרת ב־110. איזו עסקה ביצעת?', answers:['Short מרוויח','Long מרוויח','Long מפסיד','Short מפסיד'], correctIndex:1, difficulty:'basic', explanation:'קנייה במחיר נמוך ומכירה במחיר גבוה יותר היא עסקת Long רווחית.', active:true },
+  { id:'q10', category:'longshort', question:'אתה נמצא בעסקת Long ורוצה לסגור אותה. איזו פעולה אתה צריך לבצע?', answers:['Buy','Buy Stop','Sell','Short נוסף'], correctIndex:2, difficulty:'basic', explanation:'כדי לסגור עסקת Long יש למכור (Sell) את הפוזיציה הקיימת.', active:true },
+  { id:'q11', category:'longshort', question:'נכנסת ל־Short ב־100 והמחיר ירד ל־90. מה מצב העסקה?', answers:['בהפסד','ברווח','ללא שינוי','העסקה נסגרה אוטומטית'], correctIndex:1, difficulty:'medium', explanation:'בעסקת Short הרווח נוצר כשהמחיר יורד — ירידה מ-100 ל-90 היא רווח.', active:true },
+  { id:'q12', category:'longshort', question:'איזו פעולה סוגרת עסקת Short?', answers:['מכירה נוספת','קנייה','המתנה עד לפקיעה','הגדלת הפוזיציה'], correctIndex:1, difficulty:'basic', explanation:'עסקת Short נסגרת באמצעות קנייה (Buy) שמכסה את הפוזיציה.', active:true },
+  { id:'q13', category:'orders', question:'המחיר כרגע 100 ואתה רוצה להיכנס ל־Long עכשיו. איזו פקודה מתאימה?', answers:['Sell Market','Buy Market','Buy Limit ב־105','Sell Stop ב־95'], correctIndex:1, difficulty:'basic', explanation:'כניסה מיידית במחיר השוק הנוכחי מתבצעת בפקודת Buy Market.', active:true },
+  { id:'q14', category:'orders', question:'המחיר כרגע 100. אתה רוצה לקנות רק אם המחיר ירד ל־95.', answers:['Buy Market','Buy Stop ב־95','Buy Limit ב־95','Sell Limit ב־95'], correctIndex:2, difficulty:'medium', explanation:'כניסה רק כשהמחיר יורד למחיר מסוים היא פקודת Buy Limit.', active:true },
+  { id:'q15', category:'orders', question:'המחיר כרגע 100. אתה רוצה להיכנס ל־Long רק אם המחיר יעלה ל־105.', answers:['Buy Stop ב־105','Buy Limit ב־105','Sell Stop ב־105','Buy Market'], correctIndex:0, difficulty:'medium', explanation:'כניסה רק כשהמחיר עולה מעל הנוכחי היא פקודת Buy Stop.', active:true },
+  { id:'q16', category:'orders', question:'המחיר כרגע 100. שלחת Buy Market, אבל המוכר הזמין הקרוב ביותר נמצא ב־101. מה יכול לקרות?', answers:['הפקודה תתבטל אוטומטית','הקנייה יכולה להתבצע ב־101','הקנייה תמיד תתבצע בדיוק ב־100','המערכת תמתין עד שהמחיר יחזור ל־100'], correctIndex:1, difficulty:'hard', explanation:'בפקודת Market הביצוע הוא במחיר הזמין הקרוב ביותר בשוק, לא בהכרח במחיר המבוקש.', active:true },
+  { id:'q17', category:'risk', question:'למה משמש Stop Loss?', answers:['להגבלת ההפסד בעסקה','להגדלת הרווח האוטומטי','לקביעת מחיר הכניסה לעסקה','לחישוב העמלה למתווך'], correctIndex:0, difficulty:'basic', explanation:'Stop Loss נועד להגביל את ההפסד האפשרי בעסקה.', active:true },
+  { id:'q18', category:'risk', question:'מה משמעות יחס Risk/Reward של 1:3?', answers:['סיכון של 3 מול יעד פוטנציאלי של 1','שלוש עסקאות מול הפסד אחד','סיכון של 1 מול יעד פוטנציאלי של 3','יחס שאינו קשור לניהול סיכונים'], correctIndex:2, difficulty:'medium', explanation:'יחס 1:3 אומר שמסכנים יחידה אחת כדי לכוון ליעד של שלוש יחידות רווח.', active:true },
+  { id:'q19', category:'risk', question:'שני סוחרים נכנסו באותו מחיר והציבו את אותו Stop. אחד לקח פוזיציה גדולה פי 3. מי מסכן יותר כסף?', answers:['שניהם מסכנים אותו סכום','בעל הפוזיציה הקטנה','בעל הפוזיציה הגדולה','אי אפשר לדעת בלי לראות את התוצאה בפועל'], correctIndex:2, difficulty:'hard', explanation:'ככל שהפוזיציה גדולה יותר (במרחק Stop זהה), כך הסיכון הכספי גדול יותר.', active:true },
+  { id:'q20', category:'risk', question:'מהו חוזה עתידי לפי החומר במכינה?', answers:['מניה עם תאריך תפוגה','הלוואה מובטחת בנכס פיזי','תעודת בעלות בסחורה פיזית','מכשיר פיננסי למסחר על מחיר עתידי של נכס באמצעות חוזה'], correctIndex:3, difficulty:'medium', explanation:'חוזה עתידי הוא מכשיר פיננסי הנסחר על מחיר עתידי של נכס באמצעות חוזה בין צדדים.', active:true }
+];
+
+var LT = { screen:'home', history:[], studentId:null, studentName:null, questions:[], index:0, responses:[], attemptsCache:[] };
+
+function initLevelTest() {
+  LT.screen = 'home'; LT.history = [];
+  ltRenderHome();
+}
+
+function ltPush(screen) { LT.history.push(screen); }
+
+function ltGoTo(screen, noPush) {
+  if (!noPush && LT.screen && LT.screen !== screen) ltPush(LT.screen);
+  LT.screen = screen;
+  if (screen === 'home') ltRenderHome();
+  else if (screen === 'pickStudent') ltRenderPickStudent();
+  else if (screen === 'intro') ltRenderIntro();
+  else if (screen === 'history') ltRenderHistory();
+}
+
+function ltBackNav() {
+  if (LT.screen === 'quiz' && LT.index > 0) { ltPrevQuestion(); return; }
+  if (LT.history.length) { ltGoTo(LT.history.pop(), true); }
+  else { hideCalc(); }
+}
+
+function ltPad2(n) { return (n < 10 ? '0' : '') + n; }
+
+function ltRenderHome() {
+  document.getElementById('lt-content').innerHTML =
+    '<div class="lt-slide">' +
+    '<div class="lt-section-lbl">מבחן רמה חדש</div>' +
+    '<div class="lt-student-item" onclick="ltGoTo(\'pickStudent\')"><span>▶ התחל מבחן רמה לתלמיד</span><span class="arrow">‹</span></div>' +
+    '<div class="lt-section-lbl">תיעוד</div>' +
+    '<div class="lt-student-item" onclick="ltGoTo(\'history\')"><span>📋 היסטוריית מבחנים</span><span class="arrow">‹</span></div>' +
+    '</div>';
+}
+
+function ltRenderPickStudent() {
+  var list = allStudents.slice().filter(function(s){return !s.archived;}).sort(function(a,b){return adminName(a).localeCompare(adminName(b),'he');});
+  var html = '<div class="lt-slide"><input type="text" id="lt-student-search" placeholder="🔍 חיפוש תלמיד..." oninput="ltFilterStudents()" style="width:100%;padding:11px 13px;background:#1a1d27;border:1.5px solid #2d3045;border-radius:8px;color:#e5e7eb;font-family:\'Heebo\',sans-serif;font-size:14px;outline:none;margin-bottom:14px">';
+  html += '<div id="lt-student-list">';
+  if (!list.length) html += '<div class="lt-empty">אין תלמידים רשומים</div>';
+  list.forEach(function(s) {
+    html += '<div class="lt-student-item" data-name="' + adminName(s).toLowerCase() + '" onclick="ltStartForStudent(\'' + s.id + '\')"><span>' + adminName(s) + '</span><span class="arrow">‹</span></div>';
+  });
+  html += '</div></div>';
+  document.getElementById('lt-content').innerHTML = html;
+}
+
+function ltFilterStudents() {
+  var q = document.getElementById('lt-student-search').value.trim().toLowerCase();
+  document.querySelectorAll('#lt-student-list .lt-student-item').forEach(function(el) {
+    el.style.display = el.getAttribute('data-name').indexOf(q) !== -1 ? 'flex' : 'none';
+  });
+}
+
+function ltStartForStudent(sid) {
+  var s = allStudents.find(function(x){return x.id===sid;});
+  LT.studentId = sid;
+  LT.studentName = s ? adminName(s) : 'תלמיד';
+  ltGoTo('intro');
+}
+
+function ltRenderIntro() {
+  document.getElementById('lt-content').innerHTML =
+    '<div class="lt-slide">' +
+    '<div class="lt-intro-title">לפני שמתחילים — בוא נראה מאיפה אתה מתחיל.</div>' +
+    '<div class="lt-intro-body">20 שאלות קצרות שיעזרו לנו להבין את רמת הידע שלך ולהתאים לך את המכינה הנכונה.<br><br>זה לא מבחן של בית ספר. המטרה היא לא לקבל 100 — אלא לדעת בדיוק מה אתה כבר יודע ומה כדאי לחזק לפני קורס החוזים.</div>' +
+    '<button class="mc-btn" onclick="ltBeginQuiz()">מתחילים →</button>' +
+    '<div class="lt-intro-meta">20 שאלות • כ־7 דקות • ללא ציון עובר/נכשל</div>' +
+    '</div>';
+}
+
+function ltShuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function ltShuffleForAttempt(questions) {
+  var byCat = {};
+  questions.forEach(function(q) {
+    if (!byCat[q.category]) byCat[q.category] = [];
+    byCat[q.category].push(q);
+  });
+  var order = ['market','charts','longshort','orders','risk'];
+  var out = [];
+  order.forEach(function(cat) { if (byCat[cat]) out = out.concat(ltShuffle(byCat[cat])); });
+  Object.keys(byCat).forEach(function(cat) { if (order.indexOf(cat) === -1) out = out.concat(ltShuffle(byCat[cat])); });
+  return out.map(function(q) {
+    var answers = q.answers.map(function(text, i) { return { text: text, origIndex: i }; });
+    answers = ltShuffle(answers);
+    return Object.assign({}, q, { shuffledAnswers: answers });
+  });
+}
+
+function ltSeedQuestions(cb) {
+  var batch = db.batch();
+  LT_SEED_QUESTIONS.forEach(function(q) { batch.set(db.collection('quizQuestions').doc(q.id), q); });
+  batch.commit().then(cb).catch(function(e) { alert('שגיאה בזריעת שאלות: ' + e.message); });
+}
+
+function ltFetchActiveQuestions(cb) {
+  db.collection('quizQuestions').where('active','==',true).get().then(function(snap) {
+    var qs = [];
+    snap.forEach(function(doc) { qs.push(Object.assign({id:doc.id}, doc.data())); });
+    if (!qs.length) {
+      ltSeedQuestions(function() {
+        db.collection('quizQuestions').where('active','==',true).get().then(function(snap2) {
+          var qs2 = [];
+          snap2.forEach(function(doc) { qs2.push(Object.assign({id:doc.id}, doc.data())); });
+          cb(qs2);
+        });
+      });
+    } else { cb(qs); }
+  }).catch(function(e) { alert('שגיאה בטעינת שאלות: ' + e.message); });
+}
+
+function ltBeginQuiz() {
+  var content = document.getElementById('lt-content');
+  content.innerHTML = '<div class="lt-analyzing"><div class="lt-spinner"></div>טוען שאלות...</div>';
+  ltFetchActiveQuestions(function(questions) {
+    if (!questions.length) { content.innerHTML = '<div class="lt-empty">לא נמצאו שאלות פעילות במאגר.</div>'; return; }
+    LT.questions = ltShuffleForAttempt(questions);
+    LT.index = 0;
+    LT.responses = [];
+    LT.screen = 'quiz';
+    LT.history = ['home'];
+    ltRenderQuestion();
+  });
+}
+
+function ltRenderQuestion() {
+  var q = LT.questions[LT.index];
+  var total = LT.questions.length;
+  var num = LT.index + 1;
+  var pct = Math.round((num / total) * 100);
+  var letters = ['א','ב','ג','ד'];
+  var existing = LT.responses[LT.index];
+  var html = '<div class="lt-slide">';
+  html += '<div class="lt-progress-wrap"><div class="lt-progress-label"><span>שאלה ' + ltPad2(num) + ' / ' + total + '</span><span>' + pct + '%</span></div><div class="lt-progress-track"><div class="lt-progress-fill" style="width:' + pct + '%"></div></div></div>';
+  html += '<div class="lt-cat-tag">' + (LT_CATEGORIES[q.category] ? LT_CATEGORIES[q.category].full : q.category) + '</div>';
+  html += '<div class="lt-question">' + q.question + '</div>';
+  html += '<div class="lt-answers">';
+  q.shuffledAnswers.forEach(function(a, i) {
+    var sel = existing && existing.selectedShuffledIndex === i ? ' selected' : '';
+    html += '<div class="lt-answer' + sel + '" onclick="ltSelectAnswer(' + i + ')"><span class="lt-answer-letter">' + letters[i] + '</span><span>' + a.text + '</span><span class="lt-answer-check">✓</span></div>';
+  });
+  html += '</div>';
+  if (LT.index > 0) html += '<div class="lt-back-link" onclick="ltPrevQuestion()">← חזרה לשאלה הקודמת</div>';
+  html += '</div>';
+  document.getElementById('lt-content').innerHTML = html;
+}
+
+function ltSelectAnswer(shuffledIndex) {
+  var q = LT.questions[LT.index];
+  var chosen = q.shuffledAnswers[shuffledIndex];
+  LT.responses[LT.index] = {
+    questionId: q.id, category: q.category, question: q.question,
+    selectedShuffledIndex: shuffledIndex, selectedText: chosen.text,
+    isCorrect: chosen.origIndex === q.correctIndex, correctText: q.answers[q.correctIndex]
+  };
+  document.querySelectorAll('#lt-content .lt-answer').forEach(function(c, i) { c.classList.toggle('selected', i === shuffledIndex); });
+  setTimeout(function() {
+    if (LT.index < LT.questions.length - 1) { LT.index++; ltRenderQuestion(); }
+    else { ltFinishQuiz(); }
+  }, 380);
+}
+
+function ltPrevQuestion() { if (LT.index > 0) { LT.index--; ltRenderQuestion(); } }
+
+function ltFinishQuiz() {
+  LT.screen = 'analyzing';
+  document.getElementById('lt-content').innerHTML = '<div class="lt-analyzing"><div class="lt-spinner"></div>מנתח את התשובות שלך...</div>';
+  setTimeout(function() {
+    var result = ltComputeResult();
+    ltSaveAttempt(result, function() { ltRenderResults(result); });
+  }, 1200);
+}
+
+function ltComputeResult() {
+  var catScores = { market:0, charts:0, longshort:0, orders:0, risk:0 };
+  var overall = 0;
+  LT.responses.forEach(function(r) {
+    if (r.isCorrect) { overall++; if (catScores[r.category] !== undefined) catScores[r.category]++; }
+  });
+  var track, trackLabel;
+  if (overall <= 10) { track = 'foundation'; trackLabel = 'מסלול יסודות — שני שיעורי מכינה'; }
+  else if (overall <= 15) { track = 'focused'; trackLabel = 'מסלול ממוקד — שיעור מכינה מלא אחד'; }
+  else { track = 'short'; trackLabel = 'מסלול מקוצר — ריענון וסגירת פערים'; }
+  var mandatory = [];
+  Object.keys(catScores).forEach(function(cat) { if (catScores[cat] <= 1) mandatory.push(cat); });
+  return { overall:overall, catScores:catScores, track:track, trackLabel:trackLabel, mandatory:mandatory, responses:LT.responses.slice() };
+}
+
+function ltSaveAttempt(result, cb) {
+  db.collection('quizAttempts').where('studentId','==',LT.studentId).where('quizType','==','level-test').get().then(function(snap) {
+    var attemptNumber = snap.size + 1;
+    db.collection('quizAttempts').add({
+      studentId: LT.studentId, studentName: LT.studentName, quizType: 'level-test',
+      date: new Date().toISOString().split('T')[0], overallScore: result.overall,
+      categoryScores: result.catScores, track: result.track, trackLabel: result.trackLabel,
+      attemptNumber: attemptNumber, answers: result.responses,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(), mentorId: currentUser.uid
+    }).then(function() { cb(); }).catch(function(e) { alert('שגיאה בשמירת התוצאה: ' + e.message); cb(); });
+  }).catch(function(e) { alert('שגיאה: ' + e.message); cb(); });
+}
+
+function ltRenderResults(result) {
+  LT.screen = 'results';
+  var subtitle = result.overall >= 16 ? 'יש לך בסיס מצוין לקראת הקורס.' : (result.overall >= 11 ? 'יש לך בסיס טוב, עם כמה נקודות לחיזוק.' : 'שווה להשקיע בבניית הבסיס לפני הקורס.');
+  var html = '<div class="lt-slide">';
+  html += '<div class="lt-score-hero"><div class="lt-score-big">' + result.overall + '/20</div><div class="lt-score-sub">' + LT.studentName + ' — ' + subtitle + '</div><div class="lt-track-pill">' + result.trackLabel + '</div></div>';
+  Object.keys(LT_CATEGORIES).forEach(function(cat) {
+    var score = result.catScores[cat]; var weak = score <= 1; var pct = (score / 4) * 100;
+    html += '<div class="lt-cat-bar-row"><div class="lt-cat-bar-label"><span>' + LT_CATEGORIES[cat].full + '</span><span>' + score + '/4</span></div><div class="lt-cat-bar-track"><div class="lt-cat-bar-fill ' + (weak?'weak':'ok') + '" style="width:' + pct + '%"></div></div></div>';
+  });
+  if (result.mandatory.length) {
+    var names = result.mandatory.map(function(c){return LT_CATEGORIES[c].full;}).join(', ');
+    html += '<div class="lt-weak-note">מצאנו ' + (result.mandatory.length>1?'נקודות':'נקודה אחת') + ' שכדאי לחזק לפני שממשיכים: ' + names + '.</div>';
+  }
+  html += '<button class="mc-btn" onclick="ltGoTo(\'home\')">התחל את המכינה שלי →</button>';
+  html += '</div>';
+  document.getElementById('lt-content').innerHTML = html;
+}
+
+function ltRenderHistory() {
+  var content = document.getElementById('lt-content');
+  content.innerHTML = '<div class="lt-analyzing"><div class="lt-spinner"></div>טוען היסטוריה...</div>';
+  db.collection('quizAttempts').where('quizType','==','level-test').orderBy('createdAt','desc').get().then(function(snap) {
+    var attempts = [];
+    snap.forEach(function(doc) { attempts.push(Object.assign({id:doc.id}, doc.data())); });
+    LT.attemptsCache = attempts;
+    var html = '<div class="lt-slide">';
+    if (!attempts.length) { html += '<div class="lt-empty">עדיין אין מבחנים שנשמרו.</div>'; }
+    else {
+      attempts.forEach(function(a) {
+        html += '<div class="lt-attempt-row" onclick="ltRenderDetail(\'' + a.id + '\')">' +
+          '<div class="lt-attempt-top"><span class="lt-attempt-name">' + (a.studentName||'תלמיד') + '</span><span class="lt-attempt-score">' + a.overallScore + '/20</span></div>' +
+          '<div class="lt-attempt-meta">' + (a.date||'') + ' · ניסיון #' + (a.attemptNumber||1) + ' · ' + (a.trackLabel||'') + '</div></div>';
+      });
+    }
+    html += '</div>';
+    content.innerHTML = html;
+  }).catch(function(e) { content.innerHTML = '<div class="lt-empty">שגיאה בטעינה: ' + e.message + '</div>'; });
+}
+
+function ltRenderDetail(attemptId) {
+  ltPush(LT.screen);
+  LT.screen = 'detail';
+  var a = LT.attemptsCache.find(function(x){return x.id===attemptId;});
+  if (!a) { ltGoTo('history', true); return; }
+  var html = '<div class="lt-slide">';
+  html += '<div class="lt-score-hero"><div class="lt-score-big">' + a.overallScore + '/20</div><div class="lt-score-sub">' + (a.studentName||'') + ' · ' + (a.date||'') + ' · ניסיון #' + (a.attemptNumber||1) + '</div><div class="lt-track-pill">' + (a.trackLabel||'') + '</div></div>';
+  Object.keys(LT_CATEGORIES).forEach(function(cat) {
+    var score = (a.categoryScores && a.categoryScores[cat]) || 0; var weak = score <= 1; var pct = (score / 4) * 100;
+    html += '<div class="lt-cat-bar-row"><div class="lt-cat-bar-label"><span>' + LT_CATEGORIES[cat].full + '</span><span>' + score + '/4</span></div><div class="lt-cat-bar-track"><div class="lt-cat-bar-fill ' + (weak?'weak':'ok') + '" style="width:' + pct + '%"></div></div></div>';
+  });
+  var wrong = (a.answers || []).filter(function(r) { return !r.isCorrect; });
+  html += '<div class="lt-section-lbl">שאלות שהוחמצו (' + wrong.length + ')</div>';
+  if (!wrong.length) { html += '<div class="lt-empty">אין שאלות שהוחמצו 🎉</div>'; }
+  else {
+    wrong.forEach(function(r) {
+      html += '<div class="lt-wrong-card"><div class="lt-wrong-q">' + r.question + '</div><div class="lt-wrong-ans">✗ תשובת התלמיד: ' + r.selectedText + '</div><div class="lt-wrong-correct">✓ תשובה נכונה: ' + r.correctText + '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('lt-content').innerHTML = html;
 }
 
 // -- GOAL --
