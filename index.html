@@ -3914,9 +3914,14 @@ function ltRenderResults(result) {
 function ltRenderHistory() {
   var content = document.getElementById('lt-content');
   content.innerHTML = '<div class="lt-analyzing"><div class="lt-spinner"></div>טוען היסטוריה...</div>';
-  db.collection('quizAttempts').where('quizType','==','level-test').orderBy('createdAt','desc').get().then(function(snap) {
+  db.collection('quizAttempts').where('quizType','==','level-test').get().then(function(snap) {
     var attempts = [];
     snap.forEach(function(doc) { attempts.push(Object.assign({id:doc.id}, doc.data())); });
+    attempts.sort(function(a, b) {
+      var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
     LT.attemptsCache = attempts;
     var html = '<div class="lt-slide">';
     if (!attempts.length) { html += '<div class="lt-empty">עדיין אין מבחנים שנשמרו.</div>'; }
