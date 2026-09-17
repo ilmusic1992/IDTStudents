@@ -4462,8 +4462,7 @@ function ppRenderOutro(s) {
   return '<div class="pp-outro"><div class="l1">' + s.line1 + '</div><div class="l2">' + s.line2 + '</div><button class="btn-primary" style="width:auto;padding:13px 26px" onclick="ppFinishChapter()">' + s.cta + '</button></div>';
 }
 function ppFinishChapter() {
-  alert('פרק 02 עדיין לא נבנה באתר. פרק 01 הושלם ✅');
-  ppBackNav();
+  ppRenderHome();
 }
 
 var PP_SCREEN_RENDERERS = {
