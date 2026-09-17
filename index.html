@@ -614,6 +614,102 @@ body {
 .lt-section-lbl:first-child { margin-top:0; }
 .lt-empty { text-align:center; padding:30px 15px; color:#6b7280; font-size:13.5px; }
 
+/* ===== IDT PREP (LESSON ENGINE) ===== */
+.pp-shell { background:var(--white); min-height:100vh; display:flex; flex-direction:column; }
+.pp-header { padding:12px 16px 10px; border-bottom:1px solid var(--gray-100); position:sticky; top:0; background:var(--white); z-index:60; }
+.pp-header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.pp-back { width:30px; height:30px; background:var(--gray-100); border:none; border-radius:8px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
+.pp-header-label { font-size:12px; font-weight:800; color:var(--green); letter-spacing:.5px; }
+.pp-header-sub { font-size:11px; color:var(--gray-500); }
+.pp-dots { display:flex; gap:4px; }
+.pp-dot { width:7px; height:7px; border-radius:50%; background:var(--gray-200); flex-shrink:0; }
+.pp-dot.filled { background:var(--green); }
+.pp-content { padding:20px 16px 100px; flex:1; overflow-y:auto; }
+.pp-kicker { font-size:11px; font-weight:800; color:var(--green); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+.pp-title { font-size:21px; font-weight:900; color:var(--black); line-height:1.4; white-space:pre-line; margin-bottom:8px; }
+.pp-body { font-size:14px; color:var(--gray-500); line-height:1.7; margin-bottom:6px; white-space:pre-line; }
+.pp-question { font-size:17px; font-weight:800; color:var(--black); line-height:1.5; margin-bottom:18px; }
+.pp-choices { display:flex; flex-direction:column; gap:9px; margin-bottom:14px; }
+.pp-choice {
+  background:var(--white); border:1.5px solid var(--gray-200); border-radius:12px; padding:13px 14px;
+  display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14.5px; color:var(--black);
+  transition:border-color .15s, background .15s;
+}
+.pp-choice:hover { border-color:var(--green); }
+.pp-choice.selected { border-color:var(--green); background:var(--green-pale); }
+.pp-choice.correct { border-color:var(--green); background:var(--green-pale); }
+.pp-choice.incorrect { border-color:var(--red); background:var(--red-light); }
+.pp-choice-letter { width:24px; height:24px; border-radius:7px; background:var(--gray-100); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--gray-500); flex-shrink:0; }
+.pp-choice.selected .pp-choice-letter, .pp-choice.correct .pp-choice-letter { background:var(--green); color:var(--white); }
+.pp-choice.incorrect .pp-choice-letter { background:var(--red); color:var(--white); }
+.pp-reveal-box { background:var(--green-pale); border:1px solid var(--green-light); border-radius:12px; padding:14px 16px; font-size:14px; color:var(--green-dark); font-weight:700; line-height:1.7; white-space:pre-line; margin-top:6px; animation:ppFadeIn .35s ease; }
+.pp-hint { font-size:12.5px; color:var(--gray-400); text-align:center; margin-top:10px; }
+@keyframes ppFadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+.pp-flow { display:flex; flex-direction:column; align-items:center; gap:6px; margin:18px 0; }
+.pp-flow-item { background:var(--gray-100); border-radius:12px; padding:12px 20px; font-size:15px; font-weight:700; color:var(--black); text-align:center; }
+.pp-flow-arrow { font-size:16px; color:var(--gray-400); }
+.pp-flow-caption { text-align:center; font-size:13px; color:var(--gray-500); margin-top:16px; line-height:1.8; }
+.pp-split { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.pp-split-panel { border:1px solid var(--gray-200); border-radius:12px; padding:14px 10px; text-align:center; }
+.pp-split-title { font-size:11px; font-weight:800; color:var(--gray-500); letter-spacing:.5px; margin-bottom:12px; }
+.pp-split-flow-item { background:var(--gray-100); border-radius:9px; padding:8px 6px; font-size:12.5px; font-weight:700; margin-bottom:6px; }
+.pp-split-note { font-size:11.5px; color:var(--green-dark); font-weight:700; margin-top:8px; }
+.pp-zones { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.pp-zone { border:1.5px dashed var(--gray-300); border-radius:12px; padding:20px 10px; text-align:center; font-size:13px; font-weight:800; color:var(--gray-500); cursor:pointer; transition:.15s; }
+.pp-zone:hover { border-color:var(--green); color:var(--green-dark); }
+.pp-zone.correct { border:1.5px solid var(--green); background:var(--green-pale); color:var(--green-dark); }
+.pp-zone.incorrect { border:1.5px solid var(--red); background:var(--red-light); color:var(--red); }
+.pp-drop-item { background:var(--black); color:var(--white); border-radius:10px; padding:12px; text-align:center; font-weight:700; margin-bottom:6px; }
+.pp-cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:14px; }
+.pp-info-card { border:1px solid var(--gray-100); border-radius:12px; padding:18px 10px; text-align:center; box-shadow:var(--shadow); }
+.pp-info-card .icon { font-size:26px; margin-bottom:8px; }
+.pp-info-card .label { font-size:12.5px; font-weight:700; }
+.pp-match-wrap { display:flex; gap:10px; margin-top:14px; }
+.pp-match-col { flex:1; display:flex; flex-direction:column; gap:8px; }
+.pp-match-item { border:1.5px solid var(--gray-200); border-radius:10px; padding:12px 10px; text-align:center; font-size:13.5px; font-weight:700; cursor:pointer; transition:.15s; }
+.pp-match-item:hover { border-color:var(--green); }
+.pp-match-item.active { border-color:var(--green); background:var(--green-pale); }
+.pp-match-item.matched { border-color:var(--green); background:var(--green-pale); color:var(--green-dark); cursor:default; opacity:.85; }
+.pp-tag-grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.pp-tag { border:1.5px solid var(--gray-200); border-radius:99px; padding:8px 15px; font-size:13px; font-weight:700; color:var(--black); transition:.25s; }
+.pp-tag.dim { opacity:.25; }
+.pp-tag.focus { border-color:var(--green); color:var(--green-dark); background:var(--green-pale); }
+.pp-seq { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.pp-seq-card { border:1px solid var(--gray-100); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); opacity:0; transform:translateY(8px); animation:ppFadeIn .4s ease forwards; }
+.pp-seq-card .t { font-size:16px; font-weight:900; }
+.pp-seq-card .s { font-size:12px; color:var(--gray-500); font-weight:600; margin-top:2px; }
+.pp-seq-arrow { text-align:center; color:var(--gray-300); font-size:14px; }
+.pp-outro { text-align:center; padding-top:40px; }
+.pp-outro .l1 { font-size:15px; color:var(--gray-500); margin-bottom:22px; }
+.pp-outro .l2 { font-size:19px; font-weight:800; color:var(--black); margin-bottom:26px; }
+.pp-chip { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:99px; }
+.pp-chip.green { background:var(--green-light); color:var(--green-dark); }
+.pp-chip.yellow { background:#fef3c7; color:#b45309; }
+.pp-chip.red { background:var(--red-light); color:var(--red); }
+.pp-chapter-card { border:1px solid var(--gray-100); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:space-between; cursor:pointer; margin-bottom:10px; }
+.pp-chapter-card:hover { border-color:var(--green); }
+.pp-chapter-num { font-size:11px; color:var(--gray-500); font-weight:700; }
+.pp-chapter-title { font-size:15px; font-weight:800; color:var(--black); margin-top:2px; }
+.pp-chapter-locked { opacity:.5; cursor:default; }
+.pp-chapter-locked:hover { border-color:var(--gray-100); }
+.pp-bottomnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--white); border-top:1px solid var(--gray-100); display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px)); z-index:80; }
+.pp-nav-btn { flex:1; padding:12px; border-radius:10px; border:none; font-family:'Heebo',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
+.pp-nav-back { background:var(--gray-100); color:var(--black); flex:0 0 70px; }
+.pp-nav-teacher { background:#fef3c7; color:#92400e; flex:0 0 90px; }
+.pp-nav-teacher.on { background:#f59e0b; color:var(--white); }
+.pp-nav-next { background:var(--green); color:var(--white); }
+.pp-teacher-drawer { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:flex-end; justify-content:center; z-index:200; }
+.pp-teacher-drawer.open { display:flex; }
+.pp-teacher-panel { background:#1a1d27; color:#e5e7eb; width:100%; max-width:430px; max-height:75vh; overflow-y:auto; border-radius:18px 18px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px)); }
+.pp-teacher-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.pp-teacher-badge { font-size:11px; font-weight:800; color:#f59e0b; letter-spacing:.5px; text-transform:uppercase; }
+.pp-teacher-close { width:28px; height:28px; background:#2d3045; border:none; border-radius:50%; color:#e5e7eb; font-size:13px; cursor:pointer; }
+.pp-teacher-section { margin-bottom:14px; }
+.pp-teacher-label { font-size:10.5px; font-weight:800; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+.pp-teacher-text { font-size:13.5px; line-height:1.7; color:#e5e7eb; }
+.pp-teacher-bullets { margin:0; padding-right:18px; font-size:13.5px; line-height:1.8; color:#e5e7eb; }
+.pp-teacher-skip { width:100%; padding:10px; margin-top:6px; background:#2d3045; color:#e5e7eb; border:none; border-radius:8px; font-family:'Heebo',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+
 /* ===== EMPTY STATE ===== */
 .empty-state { text-align:center; padding:40px 20px; color:var(--gray-500); }
 .empty-icon { font-size:38px; margin-bottom:10px; }
@@ -967,6 +1063,38 @@ canvas { width:100% !important; display:block; border-radius:8px; }
     <div class="mc-head-title">🎓 מבחן רמה | מכינה לקורס חוזים</div>
   </div>
   <div class="mc-content" id="lt-content"></div>
+</div>
+
+<!-- ====== IDT PREP (LESSON ENGINE) ====== -->
+<div class="calc-screen" id="calc-prep">
+  <div class="pp-shell">
+    <div class="pp-header">
+      <div class="pp-header-top">
+        <button class="pp-back" onclick="ppBackNav()">‹</button>
+        <div style="text-align:center">
+          <div class="pp-header-label" id="pp-header-label">IDT PREP</div>
+          <div class="pp-header-sub" id="pp-header-sub"></div>
+        </div>
+        <div style="width:30px"></div>
+      </div>
+      <div class="pp-dots" id="pp-dots"></div>
+    </div>
+    <div class="pp-content" id="pp-content"></div>
+    <div class="pp-bottomnav" id="pp-bottomnav" style="display:none">
+      <button class="pp-nav-btn pp-nav-back" onclick="ppPrevScreen()">← חזרה</button>
+      <button class="pp-nav-btn pp-nav-teacher" id="pp-teacher-btn" onclick="ppToggleTeacher()">Teacher ⓘ</button>
+      <button class="pp-nav-btn pp-nav-next" onclick="ppNextScreen()">המשך →</button>
+    </div>
+  </div>
+  <div class="pp-teacher-drawer" id="pp-teacher-drawer">
+    <div class="pp-teacher-panel">
+      <div class="pp-teacher-head">
+        <div class="pp-teacher-badge">👨‍🏫 Teacher Mode</div>
+        <button class="pp-teacher-close" onclick="ppToggleTeacher()">✕</button>
+      </div>
+      <div id="pp-teacher-body"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ====== CALC: GOAL ====== -->
@@ -3596,6 +3724,7 @@ function showCalc(name) {
   if (name === 'altwr') calcAltWR();
   if (name === 'expectations') initExpectations();
   if (name === 'leveltest') initLevelTest();
+  if (name === 'prep') { /* entered via ppEnter(), not via tools grid */ }
 }
 
 function initExpectations() {
@@ -3642,7 +3771,7 @@ function saveExpectations() {
 var expModalStudentId = null;
 
 function hideCalc() {
-  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators','expectations','leveltest'].forEach(function(n) {
+  ['goal','rr','contracts','altwr','consistency','mc','mental','library','indicators','expectations','leveltest','prep'].forEach(function(n) {
     document.getElementById('calc-' + n).classList.remove('active');
   });
   document.getElementById('app-screen').style.display = '';
@@ -3895,9 +4024,9 @@ function ltSaveAttempt(result, cb) {
 
 function ltRenderResults(result) {
   LT.screen = 'results';
-  var subtitle = result.overall >= 16 ? 'יש לך בסיס מצוין לקראת הקורס.' : (result.overall >= 11 ? 'יש לך בסיס טוב, עם כמה נקודות לחיזוק.' : 'שווה להשקיע בבניית הבסיס לפני הקורס.');
   var html = '<div class="lt-slide">';
-  html += '<div class="lt-score-hero"><div class="lt-score-big">' + result.overall + '/20</div><div class="lt-score-sub">' + LT.studentName + ' — ' + subtitle + '</div><div class="lt-track-pill">' + result.trackLabel + '</div></div>';
+  html += '<div class="lt-intro-title" style="font-size:19px;margin-bottom:16px">סיימנו. עכשיו אני יודע מאיפה מתחילים.</div>';
+  html += '<div class="lt-score-hero"><div class="lt-score-big">' + result.overall + '/20</div><div class="lt-score-sub">' + LT.studentName + '</div><div class="lt-track-pill">' + result.trackLabel + '</div></div>';
   Object.keys(LT_CATEGORIES).forEach(function(cat) {
     var score = result.catScores[cat]; var weak = score <= 1; var pct = (score / 4) * 100;
     html += '<div class="lt-cat-bar-row"><div class="lt-cat-bar-label"><span>' + LT_CATEGORIES[cat].full + '</span><span>' + score + '/4</span></div><div class="lt-cat-bar-track"><div class="lt-cat-bar-fill ' + (weak?'weak':'ok') + '" style="width:' + pct + '%"></div></div></div>';
@@ -3906,7 +4035,8 @@ function ltRenderResults(result) {
     var names = result.mandatory.map(function(c){return LT_CATEGORIES[c].full;}).join(', ');
     html += '<div class="lt-weak-note">מצאנו ' + (result.mandatory.length>1?'נקודות':'נקודה אחת') + ' שכדאי לחזק לפני שממשיכים: ' + names + '.</div>';
   }
-  html += '<button class="mc-btn" onclick="ltGoTo(\'home\')">התחל את המכינה שלי →</button>';
+  html += '<div class="lt-intro-body" style="margin-top:16px;margin-bottom:20px">המבחן לא נועד לקבוע אם אתה "טוב" או "לא טוב".<br>הוא עוזר לנו להבין על מה אפשר לעבור מהר — ואיפה כדאי לעצור.</div>';
+  html += '<button class="mc-btn" onclick="ppEnter(LT.studentId, LT.studentName)">כניסה למכינה →</button>';
   html += '</div>';
   document.getElementById('lt-content').innerHTML = html;
 }
@@ -3956,9 +4086,392 @@ function ltRenderDetail(attemptId) {
       html += '<div class="lt-wrong-card"><div class="lt-wrong-q">' + r.question + '</div><div class="lt-wrong-ans">✗ תשובת התלמיד: ' + r.selectedText + '</div><div class="lt-wrong-correct">✓ תשובה נכונה: ' + r.correctText + '</div></div>';
     });
   }
+  html += '<button class="mc-btn" onclick="ppEnter(\'' + a.studentId + '\', ' + JSON.stringify(a.studentName || 'תלמיד') + ')">כניסה למכינה →</button>';
   html += '</div>';
   document.getElementById('lt-content').innerHTML = html;
 }
+
+// ============================================================
+// IDT PREP — LESSON ENGINE (student view + Teacher Mode)
+// Reuses the IDT Learning Engine pattern. Data-driven: chapters/screens
+// are records, not hardcoded UI, so future chapters/checkpoints reuse this.
+// ============================================================
+var PP_CHAPTERS = [
+  {
+    id: 'ch01', num: '01', title: 'מבוא לשוק ההון', category: 'market',
+    screens: [
+      { id:'s1', type:'intro',
+        kicker:'IDT PREP', subkicker:'01 / מבוא לשוק ההון',
+        title:'לפני שלומדים לסחור בשוק,\nצריך להבין מה זה בכלל שוק.',
+        teacher:{ purpose:'פתיחת השיעור — יצירת עניין ומסגור המטרה.', bullets:[], ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s2', type:'choice-reveal',
+        question:'מה משותף למחנה יהודה ולשוק ההון?',
+        options:[ {key:'a',text:'בשניהם המחיר קבוע'}, {key:'b',text:'בשניהם נפגשים קונים ומוכרים'}, {key:'c',text:'בשניהם מוכרים מוצרים פיזיים'}, {key:'d',text:'בשניהם המחיר נקבע על ידי גוף מרכזי'} ],
+        correctKey:'b',
+        revealText:'קונים ↔ מוכרים\nבשניהם יש שוק.\nההבדל הוא במה סוחרים.',
+        teacher:{ purpose:'לגרום לתלמיד לחשוב על שוק כמושג מוכר, לא מפחיד.',
+          bullets:['מחנה יהודה.','Apple Store בשדרה החמישית.','מוצר פיזי לעומת נכס פיננסי.','קונה + מוכר = שוק.','בשוק ההון "המוצר" הוא נכס פיננסי.'],
+          ask:'', asset:'שלושה Cards: 🍅 שוק רגיל → מוצר | 📱 Apple Store → מוצר | 📈 שוק ההון → נכס פיננסי (מומלץ לבנות כקומפוננטה באתר).', chart:'', deepen:'', skip:true }
+      },
+      { id:'s3', type:'story',
+        title:'למה בכלל נוצר שוק ההון?',
+        flow:['🚢 מסע מסחר','💰 צריך כסף','👥 מחלקים השקעה וסיכון'],
+        subtext:['רעיון גדול.','סיכון גדול.','לא מספיק הון.'],
+        teacher:{ purpose:'סיפור קצר על מקור שוק ההון.', timing:'60–90 שניות',
+          bullets:['מסחר התחיל הרבה לפני הבורסה.','סחורה תמורת סחורה → כסף/זהב.','מסעות מסחר דרשו הרבה הון והיו מסוכנים.','במקום שאדם אחד יישא בכל הסיכון — מספר אנשים משתתפים.','1602 — הודו המזרחית ההולנדית.','מניות ובורסות.','היום המסחר אלקטרוני.'],
+          ask:'', asset:'01_History_Risk_Sharing — אינפוגרפיקה אופקית: ספינת מסחר → צורך בהון → מספר משקיעים → חלוקת בעלות וסיכון. מומש כתרשים הזרימה שמוצג במסך (אין צורך בתמונה נפרדת).', chart:'', deepen:'' }
+      },
+      { id:'s4', type:'choice-instant',
+        question:'חברה צריכה לגייס הון כדי לגדול. מה היא יכולה לעשות?',
+        options:[ {key:'a',text:'לקנות מניות'}, {key:'b',text:'להנפיק מניות'}, {key:'c',text:'לפתוח Short'}, {key:'d',text:'לקנות מדד'} ],
+        correctKey:'b', connector:'חברה ⇄ הון ⇄ משקיעים',
+        teacher:{ purpose:'גשר לשוק ראשוני/משני.', bullets:[], ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s5', type:'split-compare',
+        title:'שוק ראשוני מול שוק משני',
+        panels:[
+          { key:'primary', title:'PRIMARY MARKET', flow:['🏢 COMPANY','NEW SHARES','👥 INVESTORS'], note:'החברה מגייסת הון' },
+          { key:'secondary', title:'SECONDARY MARKET', flow:['👤 INVESTOR','⇄','👤 INVESTOR'], note:'הנכס כבר קיים ונסחר' }
+        ],
+        teacher:{ purpose:'להבחין בין הנפקה למסחר משני.', timing:'עד דקה',
+          bullets:['IPO כדוגמה.','החברה מקבלת כסף בשוק הראשוני.','לאחר מכן המסחר מתרחש בשוק המשני.','רוב מה שהתלמיד יראה כסוחר הוא השוק המשני.'],
+          ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s6', type:'drag-classify',
+        instruction:'קנית AAPL ממשקיע אחר דרך הבורסה.',
+        item:'AAPL — עסקה',
+        zones:[ {key:'primary',label:'PRIMARY MARKET'}, {key:'secondary',label:'SECONDARY MARKET'} ],
+        correctZone:'secondary',
+        teacher:{ purpose:'בדיקת הבנה מעשית.', bullets:[], ask:'אז Apple קיבלה עכשיו את הכסף שלך?',
+          deepen:'אם התלמיד עונה "כן" — לחזור להסבר של 20 שניות על ההבדל בין השווקים.', asset:'', chart:'', skip:true }
+      },
+      { id:'s7', type:'info-cards',
+        title:'מי נמצא בשוק?',
+        cards:[ {emoji:'👤',label:'סוחרים ומשקיעים'}, {emoji:'🏦',label:'בנקים'}, {emoji:'🏢',label:'קרנות ומוסדיים'}, {emoji:'⚙️',label:'עושי שוק'} ],
+        teacher:{ purpose:'לעשות סדר — לא ללמד לעומק.', timing:'30 שניות',
+          bullets:['כשאני אומר מעכשיו "קונים ומוכרים", אל תדמיין רק שני אנשים. בשוק יש המון משתתפים ובגדלים שונים.'],
+          ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s8', type:'match-pairs',
+        title:'בורסה ≠ ברוקר',
+        pairs:[ {key:'exchange',left:'בורסה',right:'זירת המסחר'}, {key:'broker',left:'ברוקר',right:'הגישה שלי למסחר'} ],
+        teacher:{ purpose:'הבחנה בסיסית — לא להעמיק כרגע.', bullets:[], ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s9', type:'visual-grid',
+        title:'במה בכלל אפשר לסחור?',
+        tags:['מניות','מדדים','חוזים עתידיים','מט"ח','סחורות','ETF','אג"ח','אופציות'],
+        focusTag:'חוזים עתידיים',
+        teacher:{ purpose:'לצמצם את הפוקוס לחוזים עתידיים.',
+          bullets:['יש הרבה מוצרים בשוק. אנחנו לא הולכים ללמוד עכשיו את כולם. אותנו מעניין להגיע לכאן.'],
+          ask:'', asset:'', chart:'', deepen:'', skip:true }
+      },
+      { id:'s10', type:'sequence-reveal',
+        cards:[ {title:'APPLE',subtitle:'חברה'}, {title:'AAPL',subtitle:'מניה'}, {title:'NASDAQ 100',subtitle:'מדד'}, {title:'NQ',subtitle:'חוזה עתידי'} ],
+        teacher:{ purpose:'הגשר לקורס — לא להסביר עדיין איך חוזה עובד.',
+          bullets:['אלה ארבעה דברים שונים. Apple היא החברה, AAPL היא המניה, Nasdaq 100 הוא מדד, ו־NQ הוא החוזה העתידי. את האחרון נכיר לעומק בקורס.'],
+          ask:'', asset:'02_Company_Stock_Index_Futures — בנוי כארבעה Cards מונפשים באתר (לא כתמונה).', chart:'', deepen:'', skip:true }
+      },
+      { id:'s11', type:'outro',
+        line1:'עכשיו אנחנו יודעים איפה אנחנו סוחרים.',
+        line2:'אבל למה המחיר בכלל זז?',
+        cta:'02 / תנועת המחיר →',
+        teacher:{ purpose:'סגירת הפרק ומעבר לפרק הבא.',
+          bullets:['Definition of Done — התלמיד עונה בעל פה על ארבעה דברים:','1. מהו שוק? — קונים ומוכרים.','2. למה חברה מנפיקה מניות? — לגייס הון.','3. מה ההבדל בין ראשוני למשני? — הנפקה מול מסחר בנכס קיים.','4. האם Apple / AAPL / Nasdaq 100 / NQ הם אותו דבר? — לא.','אם הוא יודע את ארבעתם — המבוא עשה את העבודה שלו. ממשיכים.'],
+          ask:'', asset:'', chart:'', deepen:'', skip:false }
+      }
+    ]
+  }
+];
+
+var PP = { studentId:null, studentName:null, chapterId:null, screenIndex:0, teacherMode:false, latestAttempt:null, interact:{} };
+
+function ppCurrentChapter() { return PP_CHAPTERS.find(function(c){ return c.id === PP.chapterId; }); }
+
+function ppChip(score) {
+  if (score >= 3) return { emoji:'🟢', label:'חזק', cls:'green' };
+  if (score === 2) return { emoji:'🟡', label:'לחיזוק', cls:'yellow' };
+  return { emoji:'🔴', label:'חובה', cls:'red' };
+}
+
+function ppEnter(studentId, studentName) {
+  PP.studentId = studentId; PP.studentName = studentName;
+  PP.chapterId = null; PP.screenIndex = 0; PP.teacherMode = false; PP.interact = {};
+  showCalc('prep');
+  document.getElementById('pp-bottomnav').style.display = 'none';
+  document.getElementById('pp-teacher-drawer').classList.remove('open');
+  db.collection('quizAttempts').where('studentId','==',studentId).where('quizType','==','level-test').get().then(function(snap) {
+    var attempts = [];
+    snap.forEach(function(d){ attempts.push(d.data()); });
+    attempts.sort(function(a,b) {
+      var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    PP.latestAttempt = attempts[0] || null;
+    ppRenderHome();
+  }).catch(function() { PP.latestAttempt = null; ppRenderHome(); });
+}
+
+function ppRenderHome() {
+  document.getElementById('pp-header-label').textContent = 'IDT PREP';
+  document.getElementById('pp-header-sub').textContent = PP.studentName || '';
+  document.getElementById('pp-dots').innerHTML = '';
+  document.getElementById('pp-bottomnav').style.display = 'none';
+  var html = '<div class="lt-slide"><div class="lt-section-lbl">מכינה לקורס חוזים</div>';
+  PP_CHAPTERS.forEach(function(ch) {
+    var chipHtml = '';
+    if (PP.latestAttempt && PP.latestAttempt.categoryScores && PP.latestAttempt.categoryScores[ch.category] !== undefined) {
+      var c = ppChip(PP.latestAttempt.categoryScores[ch.category]);
+      chipHtml = '<span class="pp-chip ' + c.cls + '">' + c.emoji + ' ' + c.label + '</span>';
+    }
+    html += '<div class="pp-chapter-card" onclick="ppOpenChapter(\'' + ch.id + '\')"><div><div class="pp-chapter-num">פרק ' + ch.num + '</div><div class="pp-chapter-title">' + ch.title + '</div></div>' + chipHtml + '</div>';
+  });
+  html += '<div class="pp-chapter-card pp-chapter-locked"><div><div class="pp-chapter-num">בקרוב</div><div class="pp-chapter-title">פרקים נוספים</div></div></div>';
+  html += '</div>';
+  document.getElementById('pp-content').innerHTML = html;
+}
+
+function ppOpenChapter(chapterId) {
+  PP.chapterId = chapterId; PP.screenIndex = 0; PP.teacherMode = false;
+  ppRenderScreen();
+}
+
+function ppBackNav() {
+  if (PP.chapterId) {
+    PP.chapterId = null;
+    document.getElementById('pp-bottomnav').style.display = 'none';
+    document.getElementById('pp-teacher-drawer').classList.remove('open');
+    ppRenderHome();
+  } else {
+    hideCalc();
+  }
+}
+
+function ppPrevScreen() {
+  if (PP.screenIndex > 0) { PP.screenIndex--; ppRenderScreen(); }
+  else { ppBackNav(); }
+}
+
+function ppNextScreen() {
+  var chapter = ppCurrentChapter();
+  if (PP.screenIndex < chapter.screens.length - 1) { PP.screenIndex++; ppRenderScreen(); }
+}
+
+function ppToggleTeacher() {
+  PP.teacherMode = !PP.teacherMode;
+  document.getElementById('pp-teacher-btn').classList.toggle('on', PP.teacherMode);
+  var drawer = document.getElementById('pp-teacher-drawer');
+  if (PP.teacherMode) { ppRenderTeacherDrawer(); drawer.classList.add('open'); }
+  else { drawer.classList.remove('open'); }
+}
+
+function ppRenderTeacherDrawer() {
+  var chapter = ppCurrentChapter();
+  var screen = chapter.screens[PP.screenIndex];
+  var t = screen.teacher || {};
+  var html = '';
+  if (t.purpose) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">מטרת המסך</div><div class="pp-teacher-text">' + t.purpose + '</div></div>';
+  if (t.bullets && t.bullets.length) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">ראשי פרקים לאיתמר</div><ul class="pp-teacher-bullets">' + t.bullets.map(function(b){ return '<li>' + b + '</li>'; }).join('') + '</ul></div>';
+  if (t.ask) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">שאלה לשאול בעל פה</div><div class="pp-teacher-text">' + t.ask + '</div></div>';
+  if (t.asset) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">Asset</div><div class="pp-teacher-text">' + t.asset + '</div></div>';
+  if (t.chart) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">מעבר לגרף</div><div class="pp-teacher-text">' + t.chart + '</div></div>';
+  if (t.deepen) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">העמקה</div><div class="pp-teacher-text">' + t.deepen + '</div></div>';
+  if (t.timing) html += '<div class="pp-teacher-section"><div class="pp-teacher-label">זמן משוער</div><div class="pp-teacher-text">' + t.timing + '</div></div>';
+  if (t.skip) html += '<button class="pp-teacher-skip" onclick="ppToggleTeacher(); ppNextScreen();">דלג על המסך →</button>';
+  document.getElementById('pp-teacher-body').innerHTML = html || '<div class="pp-teacher-text">אין הערות למסך זה.</div>';
+}
+
+function ppRenderDots() {
+  var chapter = ppCurrentChapter();
+  var html = '';
+  chapter.screens.forEach(function(s, i) { html += '<span class="pp-dot' + (i <= PP.screenIndex ? ' filled' : '') + '"></span>'; });
+  document.getElementById('pp-dots').innerHTML = html;
+  document.getElementById('pp-header-sub').textContent = 'פרק ' + chapter.num + ' — ' + chapter.title;
+}
+
+function ppRenderScreen() {
+  var chapter = ppCurrentChapter();
+  var screen = chapter.screens[PP.screenIndex];
+  PP.interact = {};
+  PP.teacherMode = false;
+  document.getElementById('pp-teacher-btn').classList.remove('on');
+  document.getElementById('pp-teacher-drawer').classList.remove('open');
+  document.getElementById('pp-header-label').textContent = 'IDT PREP';
+  ppRenderDots();
+  var fn = PP_SCREEN_RENDERERS[screen.type];
+  var bodyHtml = fn ? fn(screen) : '<div class="lt-empty">סוג מסך לא נתמך: ' + screen.type + '</div>';
+  var isLast = PP.screenIndex === chapter.screens.length - 1;
+  document.getElementById('pp-content').innerHTML = '<div class="lt-slide">' + bodyHtml + '</div>';
+  document.getElementById('pp-content').scrollTop = 0;
+  document.getElementById('pp-bottomnav').style.display = isLast ? 'none' : 'flex';
+}
+
+function ppRenderIntro(s) {
+  return '<div class="pp-kicker">' + s.kicker + '</div>' +
+    (s.subkicker ? '<div style="font-size:12px;color:var(--gray-500);font-weight:700;margin-bottom:16px">' + s.subkicker + '</div>' : '') +
+    '<div class="pp-title">' + s.title + '</div>';
+}
+
+function ppRenderChoiceReveal(s) {
+  var letters = ['א','ב','ג','ד'];
+  var html = '<div class="pp-question">' + s.question + '</div><div class="pp-choices" id="pp-choices">';
+  s.options.forEach(function(o, i) { html += '<div class="pp-choice" data-key="' + o.key + '" onclick="ppChoiceRevealSelect(\'' + o.key + '\')"><span class="pp-choice-letter">' + letters[i] + '</span><span>' + o.text + '</span></div>'; });
+  html += '</div><div class="pp-hint" id="pp-reveal-trigger" style="display:none;cursor:pointer;font-weight:700;color:var(--green-dark)" onclick="ppRevealAnswer()">👨‍🏫 חשוף תשובה</div><div id="pp-reveal-box"></div>';
+  return html;
+}
+function ppChoiceRevealSelect(key) {
+  PP.interact.selectedKey = key;
+  document.querySelectorAll('#pp-choices .pp-choice').forEach(function(el) { el.classList.toggle('selected', el.getAttribute('data-key') === key); });
+  var trig = document.getElementById('pp-reveal-trigger');
+  if (trig) trig.style.display = 'block';
+}
+function ppRevealAnswer() {
+  var screen = ppCurrentChapter().screens[PP.screenIndex];
+  document.querySelectorAll('#pp-choices .pp-choice').forEach(function(el) {
+    var k = el.getAttribute('data-key');
+    if (k === screen.correctKey) el.classList.add('correct');
+    else if (k === PP.interact.selectedKey) el.classList.add('incorrect');
+  });
+  document.getElementById('pp-reveal-box').innerHTML = '<div class="pp-reveal-box">' + screen.revealText + '</div>';
+  var trig = document.getElementById('pp-reveal-trigger');
+  if (trig) trig.style.display = 'none';
+}
+
+function ppRenderStory(s) {
+  var html = '<div class="pp-title" style="font-size:18px">' + s.title + '</div><div class="pp-flow">';
+  s.flow.forEach(function(item, i) { html += '<div class="pp-flow-item">' + item + '</div>'; if (i < s.flow.length - 1) html += '<div class="pp-flow-arrow">↓</div>'; });
+  html += '</div>';
+  if (s.subtext) html += '<div class="pp-flow-caption">' + s.subtext.join('<br>') + '</div>';
+  return html;
+}
+
+function ppRenderChoiceInstant(s) {
+  var letters = ['א','ב','ג','ד'];
+  var html = '<div class="pp-question">' + s.question + '</div><div class="pp-choices" id="pp-choices">';
+  s.options.forEach(function(o, i) { html += '<div class="pp-choice" data-key="' + o.key + '" onclick="ppChoiceInstantSelect(\'' + o.key + '\')"><span class="pp-choice-letter">' + letters[i] + '</span><span>' + o.text + '</span></div>'; });
+  html += '</div><div id="pp-connector"></div>';
+  return html;
+}
+function ppChoiceInstantSelect(key) {
+  var screen = ppCurrentChapter().screens[PP.screenIndex];
+  document.querySelectorAll('#pp-choices .pp-choice').forEach(function(el) {
+    var k = el.getAttribute('data-key');
+    el.classList.remove('selected','correct','incorrect');
+    if (k === screen.correctKey) el.classList.add('correct');
+    else if (k === key) el.classList.add('incorrect');
+  });
+  document.getElementById('pp-connector').innerHTML = '<div class="pp-reveal-box" style="text-align:center;font-size:16px">' + screen.connector + '</div>';
+}
+
+function ppRenderSplitCompare(s) {
+  var html = '<div class="pp-title" style="font-size:18px">' + s.title + '</div><div class="pp-split">';
+  s.panels.forEach(function(p) {
+    html += '<div class="pp-split-panel"><div class="pp-split-title">' + p.title + '</div>';
+    p.flow.forEach(function(f) { html += '<div class="pp-split-flow-item">' + f + '</div>'; });
+    html += '<div class="pp-split-note">' + p.note + '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function ppRenderDragClassify(s) {
+  var html = '<div class="pp-body">' + s.instruction + '</div><div class="pp-drop-item">' + s.item + '</div><div class="pp-zones" id="pp-zones">';
+  s.zones.forEach(function(z) { html += '<div class="pp-zone" data-key="' + z.key + '" onclick="ppClassifySelect(\'' + z.key + '\')">' + z.label + '</div>'; });
+  html += '</div><div id="pp-classify-result"></div>';
+  return html;
+}
+function ppClassifySelect(key) {
+  var screen = ppCurrentChapter().screens[PP.screenIndex];
+  document.querySelectorAll('#pp-zones .pp-zone').forEach(function(el) {
+    var k = el.getAttribute('data-key');
+    el.classList.remove('correct','incorrect');
+    if (k === key) el.classList.add(k === screen.correctZone ? 'correct' : 'incorrect');
+  });
+  if (key === screen.correctZone) {
+    var z = screen.zones.find(function(zz) { return zz.key === key; });
+    document.getElementById('pp-classify-result').innerHTML = '<div class="pp-reveal-box" style="text-align:center">✓ ' + z.label + '</div>';
+  }
+}
+
+function ppRenderInfoCards(s) {
+  var html = '<div class="pp-title" style="font-size:18px">' + s.title + '</div><div class="pp-cards-grid">';
+  s.cards.forEach(function(c) { html += '<div class="pp-info-card"><div class="icon">' + c.emoji + '</div><div class="label">' + c.label + '</div></div>'; });
+  html += '</div>';
+  return html;
+}
+
+function ppRenderMatchPairs(s) {
+  var lefts = ltShuffle(s.pairs.map(function(p) { return { key:p.key, text:p.left }; }));
+  var rights = ltShuffle(s.pairs.map(function(p) { return { key:p.key, text:p.right }; }));
+  PP.interact.matchLeft = null; PP.interact.matched = [];
+  var html = '<div class="pp-title" style="font-size:18px">' + s.title + '</div><div class="pp-match-wrap"><div class="pp-match-col" id="pp-match-left">';
+  lefts.forEach(function(l) { html += '<div class="pp-match-item" data-key="' + l.key + '" onclick="ppMatchLeftClick(\'' + l.key + '\')">' + l.text + '</div>'; });
+  html += '</div><div class="pp-match-col" id="pp-match-right">';
+  rights.forEach(function(r) { html += '<div class="pp-match-item" data-key="' + r.key + '" onclick="ppMatchRightClick(\'' + r.key + '\')">' + r.text + '</div>'; });
+  html += '</div></div>';
+  return html;
+}
+function ppMatchLeftClick(key) {
+  if (PP.interact.matched.indexOf(key) !== -1) return;
+  PP.interact.matchLeft = key;
+  document.querySelectorAll('#pp-match-left .pp-match-item').forEach(function(el) { el.classList.toggle('active', el.getAttribute('data-key') === key); });
+}
+function ppMatchRightClick(key) {
+  if (!PP.interact.matchLeft || PP.interact.matched.indexOf(key) !== -1) return;
+  var leftKey = PP.interact.matchLeft;
+  if (leftKey === key) {
+    PP.interact.matched.push(key);
+    var lEl = document.querySelector('#pp-match-left [data-key="' + leftKey + '"]');
+    lEl.classList.remove('active'); lEl.classList.add('matched');
+    document.querySelector('#pp-match-right [data-key="' + key + '"]').classList.add('matched');
+  } else {
+    var rEl = document.querySelector('#pp-match-right [data-key="' + key + '"]');
+    rEl.style.borderColor = 'var(--red)';
+    setTimeout(function() { rEl.style.borderColor = ''; }, 500);
+  }
+  PP.interact.matchLeft = null;
+}
+
+function ppRenderVisualGrid(s) {
+  var html = '<div class="pp-title" style="font-size:18px">' + s.title + '</div><div class="pp-tag-grid" id="pp-tags">';
+  s.tags.forEach(function(t) { html += '<div class="pp-tag" data-tag="' + t + '">' + t + '</div>'; });
+  html += '</div><div class="pp-hint" style="cursor:pointer;font-weight:700;color:var(--green-dark);margin-top:16px" onclick="ppFocusTag()">👨‍🏫 הדגש: ' + s.focusTag + '</div>';
+  return html;
+}
+function ppFocusTag() {
+  var screen = ppCurrentChapter().screens[PP.screenIndex];
+  document.querySelectorAll('#pp-tags .pp-tag').forEach(function(el) {
+    var isFocus = el.getAttribute('data-tag') === screen.focusTag;
+    el.classList.toggle('focus', isFocus);
+    el.classList.toggle('dim', !isFocus);
+  });
+}
+
+function ppRenderSequenceReveal(s) {
+  var html = '<div class="pp-seq">';
+  s.cards.forEach(function(c, i) {
+    html += '<div class="pp-seq-card" style="animation-delay:' + (i * 0.35) + 's"><div class="t">' + c.title + '</div><div class="s">' + c.subtitle + '</div></div>';
+    if (i < s.cards.length - 1) html += '<div class="pp-seq-arrow">↓</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function ppRenderOutro(s) {
+  return '<div class="pp-outro"><div class="l1">' + s.line1 + '</div><div class="l2">' + s.line2 + '</div><button class="btn-primary" style="width:auto;padding:13px 26px" onclick="ppFinishChapter()">' + s.cta + '</button></div>';
+}
+function ppFinishChapter() {
+  alert('פרק 02 עדיין לא נבנה באתר. פרק 01 הושלם ✅');
+  ppBackNav();
+}
+
+var PP_SCREEN_RENDERERS = {
+  'intro': ppRenderIntro, 'choice-reveal': ppRenderChoiceReveal, 'story': ppRenderStory,
+  'choice-instant': ppRenderChoiceInstant, 'split-compare': ppRenderSplitCompare, 'drag-classify': ppRenderDragClassify,
+  'info-cards': ppRenderInfoCards, 'match-pairs': ppRenderMatchPairs, 'visual-grid': ppRenderVisualGrid,
+  'sequence-reveal': ppRenderSequenceReveal, 'outro': ppRenderOutro
+};
 
 // -- GOAL --
 function calcGoal() {
