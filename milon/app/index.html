@@ -255,15 +255,15 @@ a{color:inherit}
   if(keepSearch){var q=$('q');q.focus();var v=q.value;q.value='';q.value=v}
  }
  function filtered(){
-  var q=norm(S.q),list=DATA.concepts.filter(function(c){
+  var qs=String(S.q||'').split(/\s+/).map(norm).filter(Boolean),q=qs.join(''),list=DATA.concepts.filter(function(c){
    if(S.track&&c.track!==S.track)return false;
    if(S.cat&&c.category!==S.cat)return false;
    if(S.tier&&c.tier!==S.tier)return false;
    if(S.unseen&&seen[c.id])return false;
    return true;
   });
-  if(q){
-   list=list.map(function(c){return{c:c,s:score(c,q)}}).filter(function(x){return x.s>0}).sort(function(a,b){return b.s-a.s||lk(a.c.lesson)-lk(b.c.lesson)}).map(function(x){return x.c});
+  if(qs.length){
+   list=list.map(function(c){var m=qs.map(function(k){return score(c,k)});return{c:c,s:m.indexOf(0)>=0?0:Math.min.apply(null,m)}}).filter(function(x){return x.s>0}).sort(function(a,b){return b.s-a.s||lk(a.c.lesson)-lk(b.c.lesson)}).map(function(x){return x.c});
   }
   return list;
  }
