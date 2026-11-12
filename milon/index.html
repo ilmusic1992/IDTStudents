@@ -31,10 +31,10 @@ a{color:inherit}
 .art{position:relative;order:1;min-height:0;height:46vh;display:flex;align-items:center;justify-content:center}
 @supports(height:1svh){.art{height:46svh}}
 .plate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.plate canvas{height:100%;width:auto;aspect-ratio:4/5;display:block;mix-blend-mode:screen;
+\.plate canvas{width:100%;height:auto;max-height:100%;aspect-ratio:6/5;display:block;mix-blend-mode:screen;
   filter:hue-rotate(var(--hr));transition:filter .9s;
   transform:scale(calc(1 + var(--p) * .06));transform-origin:50% 55%;will-change:transform;
-  -webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 62%,transparent 100%)}
+  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 56%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 56%,transparent 100%)}
 .smoke{position:absolute;left:0;right:0;bottom:0;height:48%;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0;
   -webkit-mask-image:linear-gradient(transparent,#000 45%);mask-image:linear-gradient(transparent,#000 45%)}
 .smoke video{width:100%;height:100%;object-fit:cover;display:block;filter:hue-rotate(var(--hr));transition:filter .9s}
@@ -110,7 +110,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
     <div class="cta"><a class="btn s" id="cta" href="#gate">קבלת גישה</a></div>
    </div>
    <div class="art">
-    <div class="plate"><canvas id="cv" width="720" height="900" role="img" aria-label="מילון המושגים לסוחרים בעברית — IDT"></canvas></div>
+    <div class="plate"><canvas id="cv" width="960" height="800" role="img" aria-label="מילון המושגים לסוחרים בעברית — IDT"></canvas></div>
     <div class="cards" aria-hidden="true">
      <div class="glass c1"><i></i><h4 id="c1h">סרטון קצר לכל מושג</h4><p id="c1p">הסבר מונפש, בלי רעש</p></div>
      <div class="glass c2"><i></i><h4 id="c2h">חיפוש מיידי</h4><p id="c2p">גם לפי ראשי תיבות</p></div>
@@ -189,7 +189,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
  [].forEach.call(document.querySelectorAll('.mode'),function(b){b.addEventListener('click',function(){setMode(+b.dataset.m)})});
 
   /* התקדמות הגלילה -> --p (0..1) + פריימים של הספר */
- var N=50,imgs=[],cur=0,tgt=0,raf=0;
+ var N=42,imgs=[],cur=0,tgt=0,raf=0;
  var cv=$('cv'),ctx=cv.getContext('2d');
  function pad(i){return (i<10?'0':'')+i}
  function draw(){
