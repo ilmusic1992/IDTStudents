@@ -79,6 +79,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
 .chk{display:flex;gap:10px;align-items:flex-start;margin-top:18px;font-size:12.5px;color:var(--mute);line-height:1.5}
 .chk input{margin-top:3px;width:18px;height:18px;accent-color:#1ED05F;flex:none}
 .panel .btn{width:100%;text-align:center;margin-top:20px;padding:14px}
+.big{font-weight:800;font-size:20px;text-align:center;margin-top:6px}.sm{font-size:13.5px;color:var(--mute);text-align:center;margin-top:10px;line-height:1.55}
 .msg{margin-top:14px;font-size:13px;color:rgb(var(--hue));min-height:20px;text-align:center}
 @media(max-height:640px){.page{padding-top:62px}.sub{display:none}.kick{margin-bottom:4px}}
 </style>
@@ -121,7 +122,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
   <form class="panel" id="p0" novalidate>
    <label class="f" for="n">שם מלא</label><input type="text" id="n" autocomplete="name">
    <label class="f" for="e">אימייל</label><input type="email" id="e" autocomplete="email" inputmode="email" dir="ltr">
-   <label class="f" for="t">טלפון (לא חובה)</label><input type="tel" id="t" autocomplete="tel" inputmode="tel" dir="ltr">
+   <label class="f" for="t">טלפון</label><input type="tel" id="t" autocomplete="tel" inputmode="tel" dir="ltr">
    <label class="chk"><input type="checkbox" id="c"><span>אני מאשר/ת קבלת עדכונים ותכנים שיווקיים בדוא״ל. אפשר להסיר בכל עת.</span></label>
    <button class="btn s" type="submit">קבלת גישה למילון</button>
    <div class="msg" id="m0" role="status"></div>
@@ -131,6 +132,15 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
    <button class="btn s" type="submit">שלחו לי קישור כניסה</button>
    <div class="msg" id="m1" role="status"></div>
   </form>
+  <div class="panel" id="ps" hidden><p class="big">שלחנו לך קישור כניסה</p><p class="sm" id="pse"></p><p class="sm">לחץ על הקישור במייל כדי להיכנס. בדוק גם בתיקיית הספאם או הקידומים.</p><button class="btn" type="button" id="back">שליחה מחדש / אימייל אחר</button></div>
+  <div class="panel" id="pw" hidden><p class="big" id="pwt">מאמת…</p></div>
+  <form class="panel" id="pe" hidden novalidate><p class="sm">פתחת את הקישור במכשיר אחר. הזן את האימייל לאישור.</p><label class="f" for="e2">אימייל</label><input type="email" id="e2" dir="ltr" inputmode="email" autocomplete="email"><button class="btn s" type="submit">אישור</button><div class="msg" id="m2" role="status"></div></form>
+  <form class="panel" id="pc" hidden novalidate><p class="sm">עוד רגע אחד. השלם פרטים כדי לסיים.</p>
+   <label class="f" for="n3">שם מלא</label><input type="text" id="n3" autocomplete="name">
+   <label class="f" for="t3">טלפון</label><input type="tel" id="t3" dir="ltr" inputmode="tel" autocomplete="tel">
+   <label class="chk"><input type="checkbox" id="c3"><span>אני מאשר/ת קבלת עדכונים ותכנים שיווקיים בדוא״ל. אפשר להסיר בכל עת.</span></label>
+   <button class="btn s" type="submit">סיום</button><div class="msg" id="m3" role="status"></div></form>
+  <div class="panel" id="pd" hidden><p class="big" id="pdt">נכנסת בהצלחה</p><p class="sm">דף המילון בבנייה אחרונה. נעדכן אותך ברגע שהוא נפתח.</p><a class="btn s" target="_blank" rel="noopener" href="https://wa.me/972552616624?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%90%D7%99%D7%AA%D7%9E%D7%A8%2C%20%D7%A0%D7%A8%D7%A9%D7%9E%D7%AA%D7%99%20%D7%9C%D7%9E%D7%99%D7%9C%D7%95%D7%9F%20%D7%94%D7%9E%D7%95%D7%A9%D7%92%D7%99%D7%9D" >עדכון בוואטסאפ</a><button class="btn" type="button" id="out">התנתקות</button></div>
  </div>
 </div>
 
@@ -161,7 +171,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
   },300);
   $('cta').href=i===2?'/links/':'#';
   $('gt').textContent=m.gt;$('gsub').textContent=m.gs;
-  for(var k=0;k<2;k++)$('p'+k).hidden=(k!==i);
+  if(i<2)showPanel('p'+i);
  }
  [].forEach.call(document.querySelectorAll('.mode'),function(b){b.addEventListener('click',function(){setMode(+b.dataset.m)})});
 
@@ -174,26 +184,114 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
  var sv=$('sv'),smk=$('smoke');
  if(sv&&!reduce){sv.play().catch(function(){});document.addEventListener('touchstart',function(){sv.play().catch(function(){})},{once:true,passive:true});
   setInterval(function(){if(!sv.duration)return;var t=sv.currentTime,d=sv.duration,f=Math.min(1,t/1.2,(d-t)/1.2);smk.style.opacity=(.55*Math.max(0,f)).toFixed(3)},80)}
- /* חלונית טופס */
- var sh=$('sheet');
+ /* ---------- Firebase (נטען רק בעת הצורך) ---------- */
+ var CFG={apiKey:"AIzaSyBKCmkE2laXl9WUBCmaXxeXqVquSo3Qzyc",authDomain:"idt-students.firebaseapp.com",projectId:"idt-students",appId:"1:361267160747:web:5334870077c819827cb9ee"};
+ var fbP=null,signedIn=false,signedName='';
+ function ld(s){return new Promise(function(r,j){var e=document.createElement('script');e.src=s;e.onload=r;e.onerror=j;document.head.appendChild(e)})}
+ function loadFB(){
+  if(fbP)return fbP;var b='https://www.gstatic.com/firebasejs/9.22.0/';
+  fbP=ld(b+'firebase-app-compat.js').then(function(){return Promise.all([ld(b+'firebase-auth-compat.js'),ld(b+'firebase-firestore-compat.js')])}).then(function(){
+   if(!firebase.apps.length)firebase.initializeApp(CFG);return{auth:firebase.auth(),db:firebase.firestore()}});
+  fbP.catch(function(){fbP=null});return fbP;
+ }
+ function LS(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+ function errText(e){var c=e&&e.code||'';
+  if(c==='auth/invalid-email')return'כתובת האימייל אינה תקינה.';
+  if(c==='auth/too-many-requests')return'יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.';
+  if(c==='auth/network-request-failed'||!c)return'בעיית תקשורת. בדוק חיבור ונסה שוב.';
+  if(c==='auth/invalid-action-code'||c==='auth/expired-action-code')return'הקישור פג תוקף או כבר נוצל. בקש קישור חדש.';
+  if(c==='permission-denied'||c==='firestore/permission-denied')return'אין הרשאה לשמור את הפרטים. פנה אלינו בוואטסאפ.';
+  return'משהו השתבש. נסה שוב.';}
+
+ /* ---------- חלונית ---------- */
+ var sh=$('sheet'),PN=['p0','p1','ps','pw','pe','pc','pd'];
+ function showPanel(id,t,s){PN.forEach(function(p){$(p).hidden=(p!==id)});if(t!=null){$('gt').textContent=t;$('gsub').textContent=s||''}}
  function open(){sh.classList.add('open')}
  function close(){sh.classList.remove('open')}
- $('cta').addEventListener('click',function(ev){if(cur===2)return;ev.preventDefault();open()});
+ function ctaOpen(){
+  if(signedIn){showPanel('pd','ברוך שובך'+(signedName?', '+signedName:''),'');$('pdt').textContent='אתה מחובר';}
+  else showPanel('p'+cur,M[cur].gt,M[cur].gs);
+  open();
+ }
+ $('cta').addEventListener('click',function(ev){if(cur===2)return;ev.preventDefault();ctaOpen()});
  $('x').addEventListener('click',close);
  sh.addEventListener('click',function(ev){if(ev.target===sh)close()});
  document.addEventListener('keydown',function(ev){if(ev.key==='Escape')close()});
+ $('back').addEventListener('click',function(){showPanel('p'+(cur<2?cur:0),M[cur<2?cur:0].gt,M[cur<2?cur:0].gs)});
 
- /* טפסים: בשלב הבדיקה אינם שומרים נתונים */
- function demo(form,msg,needName){
-  form.addEventListener('submit',function(ev){
-   ev.preventDefault();
-   var e=form.querySelector('input[type=email]').value.trim();
-   if(!/^\S+@\S+\.\S+$/.test(e)){msg.textContent='נא להזין כתובת אימייל תקינה.';return}
-   if(needName&&!form.querySelector('input[type=text]').value.trim()){msg.textContent='נא להזין שם.';return}
-   msg.textContent='גרסת בדיקה: ההרשמה עדיין לא פעילה, ולא נשמר שום מידע.';
+ /* ---------- שליחת קישור ---------- */
+ function sendLink(email,msg,btn){
+  btn.disabled=true;msg.textContent='שולח…';
+  loadFB().then(function(f){return f.auth.sendSignInLinkToEmail(email,{url:location.origin+'/milon/',handleCodeInApp:true})})
+  .then(function(){LS('milonEmail',email);btn.disabled=false;msg.textContent='';$('pse').textContent=email;showPanel('ps','בדוק את המייל','')})
+  .catch(function(e){btn.disabled=false;msg.textContent=errText(e)});
+ }
+ var EM=/^\S+@\S+\.\S+$/;
+ function normPhone(p){var d=String(p||'').replace(/[^\d+]/g,'');if(d.indexOf('+972')===0)d='0'+d.slice(4);else if(d.indexOf('972')===0)d='0'+d.slice(3);return /^0\d{8,9}$/.test(d)?d:''}
+ function src(){var q='';try{q=new URLSearchParams(location.search).get('src')||''}catch(e){}if(q)LS('milonSrc',q.slice(0,40));var s=LS('milonSrc');if(s)return s;try{return document.referrer?new URL(document.referrer).hostname:'direct'}catch(e){return'direct'}}
+ src();
+ $('p0').addEventListener('submit',function(ev){
+  ev.preventDefault();var m=$('m0'),n=$('n').value.trim(),e=$('e').value.trim().toLowerCase(),p=normPhone($('t').value);
+  if(n.length<2){m.textContent='נא להזין שם מלא.';return}
+  if(!EM.test(e)){m.textContent='נא להזין כתובת אימייל תקינה.';return}
+  if(!p){m.textContent='נא להזין מספר טלפון ישראלי תקין.';return}
+  LS('milonPending',JSON.stringify({name:n,email:e,phone:p,marketing:$('c').checked,source:src()}));
+  sendLink(e,m,ev.target.querySelector('button[type=submit]'));
+ });
+ $('p1').addEventListener('submit',function(ev){
+  ev.preventDefault();var m=$('m1'),e=$('e1').value.trim().toLowerCase();
+  if(!EM.test(e)){m.textContent='נא להזין כתובת אימייל תקינה.';return}
+  sendLink(e,m,ev.target.querySelector('button[type=submit]'));
+ });
+
+ /* ---------- חזרה מהקישור ---------- */
+ function createProfile(f,d){
+  var u=f.auth.currentUser,F=firebase.firestore.FieldValue;
+  return f.db.collection('milonUsers').doc(u.uid).set({name:d.name,email:u.email.toLowerCase(),phone:d.phone,marketing:!!d.marketing,source:d.source||'direct',createdAt:F.serverTimestamp(),lastLoginAt:F.serverTimestamp()})
+   .then(function(){LS('milonPending',null);return welcome(d.name,true)});
+ }
+ function welcome(name,isNew){
+  signedIn=true;signedName=name||'';
+  $('pdt').textContent=isNew?'נרשמת בהצלחה':'שמחים שחזרת';
+  showPanel('pd',name?('היי '+name):'ברוך הבא','');open();
+ }
+ function ensureProfile(f){
+  var u=f.auth.currentUser,ref=f.db.collection('milonUsers').doc(u.uid);
+  return ref.get().then(function(d){
+   if(d.exists){ref.update({lastLoginAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){});return welcome(d.data().name,false)}
+   var pd=null;try{pd=JSON.parse(LS('milonPending')||'null')}catch(e){}
+   if(pd&&pd.email===u.email.toLowerCase())return createProfile(f,pd);
+   showPanel('pc','כמעט סיימנו','');open();
   });
  }
- demo($('p0'),$('m0'),true);demo($('p1'),$('m1'),false);
+ function finishLink(f,em){
+  showPanel('pw','');$('pwt').textContent='מאמת…';open();
+  f.auth.signInWithEmailLink(em,location.href).then(function(){
+   try{history.replaceState(null,'',location.pathname)}catch(e){}LS('milonEmail',null);return ensureProfile(f);
+  }).catch(function(e){$('pwt').textContent=errText(e);setTimeout(function(){showPanel('p'+(cur<2?cur:0),M[cur<2?cur:0].gt,M[cur<2?cur:0].gs)},2600)});
+ }
+ $('pe').addEventListener('submit',function(ev){ev.preventDefault();var e=$('e2').value.trim().toLowerCase();if(!EM.test(e)){$('m2').textContent='נא להזין כתובת אימייל תקינה.';return}loadFB().then(function(f){finishLink(f,e)})});
+ $('pc').addEventListener('submit',function(ev){
+  ev.preventDefault();var m=$('m3'),n=$('n3').value.trim(),p=normPhone($('t3').value);
+  if(n.length<2){m.textContent='נא להזין שם מלא.';return}if(!p){m.textContent='נא להזין מספר טלפון ישראלי תקין.';return}
+  loadFB().then(function(f){return createProfile(f,{name:n,phone:p,marketing:$('c3').checked,source:src()})}).catch(function(e){m.textContent=errText(e)});
+ });
+ $('out').addEventListener('click',function(){loadFB().then(function(f){return f.auth.signOut()}).then(function(){signedIn=false;signedName='';close()})});
+
+ if(/[?&]oobCode=/.test(location.search)){
+  showPanel('pw','');$('pwt').textContent='מאמת…';open();
+  loadFB().then(function(f){
+   if(!f.auth.isSignInWithEmailLink(location.href)){$('pwt').textContent='הקישור אינו תקין.';return}
+   var em=LS('milonEmail');if(em)finishLink(f,em);else{showPanel('pe','אישור אימייל','');}
+  }).catch(function(e){$('pwt').textContent=errText(e)});
+ }else{
+  /* משתמש שכבר מחובר (נטען רק אם יש סשן שמור) */
+  var has=false;try{for(var k in localStorage){if(k.indexOf('firebase:authUser:')===0){has=true;break}}}catch(e){}
+  if(has)loadFB().then(function(f){f.auth.onAuthStateChanged(function(u){
+   if(!u){signedIn=false;return}
+   signedIn=true;f.db.collection('milonUsers').doc(u.uid).get().then(function(d){if(d.exists)signedName=d.data().name||''}).catch(function(){});
+  })});
+ }
  setMode(0);
 })();
 </script>
