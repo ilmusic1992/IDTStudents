@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ניהול מילון | IDT</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F5F5F3;--ink:#0A0A0A;--g:#1ED05F;--gd:#0f8a3c;--line:#dcdcd6;--mute:#6b6b66}
+body{background:var(--bg);color:var(--ink);font-family:Heebo,"Segoe UI",Arial,sans-serif;line-height:1.5;padding:28px 18px 80px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-weight:900;font-size:28px;letter-spacing:-.02em}
+h1 span{color:var(--gd)}
+.sub{color:var(--mute);margin-top:4px;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+.card h2{font-size:16px;font-weight:800;margin-bottom:12px}
+button,.btn{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;cursor:pointer}
+button.g{background:var(--g);border-color:var(--g);color:#06220f}
+button.o{background:#fff;color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.mute{color:var(--mute);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:22px;font-weight:900}
+.stat span{font-size:12px;color:var(--mute)}
+label.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:8px 0}
+label.chk input{margin-top:4px;accent-color:#1ED05F}
+.bar{height:10px;background:#e8e8e3;border-radius:99px;overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;background:var(--g);transition:width .2s}
+#log{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0A0A0A;color:#cfe9d8;border-radius:10px;padding:12px;max-height:260px;overflow:auto;white-space:pre-wrap;direction:ltr;text-align:left;margin-top:10px}
+.err{color:#b42318;font-weight:700}
+.ok{color:var(--gd);font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <h1>ניהול <span>מילון המושגים</span></h1>
+ <p class="sub">ייבוא מרוכז מחבילת התוכן. ייבוא חוזר מעדכן לפי id ולא יוצר כפילויות.</p>
+
+ <div class="card" id="authCard">
+  <div class="row">
+   <button id="in" class="g">כניסה עם Google</button>
+   <button id="out" class="o" hidden>התנתקות</button>
+   <span class="mute" id="who"></span>
+  </div>
+  <p class="err" id="deny" hidden>לחשבון הזה אין הרשאת ניהול.</p>
+ </div>
+
+ <div class="card" id="imp" hidden>
+  <h2>1. בחירת החבילה</h2>
+  <p class="mute">בחר את התיקייה <b>IDT_dictionary</b> אחרי חילוץ ה-ZIP (התיקייה עצמה, עם concepts.json, videos ו-images). שום דבר לא נכתב עד שתלחץ "התחל ייבוא".</p>
+  <div class="row" style="margin-top:12px"><input type="file" id="dir" webkitdirectory directory multiple></div>
+  <p class="mute" id="scanMsg" style="margin-top:10px"></p>
+
+  <div id="plan" hidden>
+   <div class="stats" id="stats"></div>
+   <h2 style="margin-top:6px">2. אפשרויות</h2>
+   <label class="chk"><input type="checkbox" id="optMedia" checked><span>להעלות גם סרטונים ותמונות (רק מה שהשתנה או חדש)</span></label>
+   <label class="chk"><input type="checkbox" id="optOver"><span>לדרוס גם שדות שנערכו ידנית במילון (ברירת מחדל: לא לדרוס)</span></label>
+   <div class="row" style="margin-top:14px"><button id="go" class="g">התחל ייבוא</button></div>
+  </div>
+
+  <div id="prog" hidden>
+   <div class="bar"><i id="barI"></i></div>
+   <div class="mute" id="progT"></div>
+  </div>
+  <div id="log" hidden></div>
+ </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+ firebase.initializeApp({apiKey:"AIzaSyBKCmkE2laXl9WUBCmaXxeXqVquSo3Qzyc",authDomain:"idt-students.firebaseapp.com",projectId:"idt-students",appId:"1:361267160747:web:5334870077c819827cb9ee"});
+ var auth=firebase.auth(),db=firebase.firestore();
+ var ADMINS=['HI21gFZ70fN1Pa77QetxCDvfBdo2','M4T2wnoJBEQ5vNUtgt22Pz8lphl1'];
+ var TEXT=['lesson','track','trackName','category','name','hebrewName','abbr','fullName','tier','definitionSource','title','definition','examples','use','behind','tagline','alsoKnownAs','durationSec','internal'];
+ var CH=800000;
+ var $=function(i){return document.getElementById(i)};
+ var cur={},curById={},PLAN=null,PKG=null,me=null;
+
+ function log(s){var l=$('log');l.hidden=false;l.textContent+=s+'\n';l.scrollTop=l.scrollHeight}
+ function st(v){if(v===undefined)return'u';if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(st).join(',')+']';return'{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+st(v[k])}).join(',')+'}'}
+ function clean(o){return JSON.parse(JSON.stringify(o))}
+ function lessonKey(l){var p=String(l||'0.0').split('.');return(+p[0])*1000+(+p[1]||0)}
+ function mb(n){return(n/1048576).toFixed(1)+'MB'}
+ function hex(buf){return Array.prototype.map.call(new Uint8Array(buf),function(b){return('0'+b.toString(16)).slice(-2)}).join('').slice(0,20)}
+ function sha(buf){return crypto.subtle.digest('SHA-1',buf).then(hex)}
+
+ auth.onAuthStateChanged(function(u){
+  me=u;
+  $('in').hidden=!!u;$('out').hidden=!u;$('who').textContent=u?u.email:'';
+  var ok=!!u&&ADMINS.indexOf(u.uid)>=0;
+  $('imp').hidden=!ok;$('deny').hidden=!(u&&!ok);
+ });
+ $('in').onclick=function(){auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){alert(e.message)})};
+ $('out').onclick=function(){auth.signOut()};
+
+ /* ---- טעינת המצב הנוכחי ---- */
+ function loadCurrent(){
+  cur={};curById={};
+  return db.collection('dictIndex').get().then(function(s){
+   s.forEach(function(d){
+    if(d.id.indexOf('t_')!==0)return;
+    var arr=d.data().concepts||[];cur[d.id.slice(2)]=arr;
+    arr.forEach(function(e){curById[e.id]=e});
+   });
+  });
+ }
+
+ /* ---- סריקה ---- */
+ $('dir').addEventListener('change',function(ev){
+  var files=[].slice.call(ev.target.files);if(!files.length)return;
+  $('plan').hidden=true;$('prog').hidden=true;
+  $('scanMsg').textContent='סורק…';
+  scan(files).catch(function(e){$('scanMsg').innerHTML='<span class="err">שגיאה: '+e.message+'</span>'});
+ });
+ function scan(files){
+  var rel={};files.forEach(function(f){rel[f.webkitRelativePath.replace(/^[^\/]+\//,'')]=f});
+  if(!rel['concepts.json'])throw new Error('לא נמצא concepts.json בתיקייה שנבחרה. בחר את התיקייה IDT_dictionary עצמה.');
+  return rel['concepts.json'].text().then(function(t){
+   PKG=JSON.parse(t);
+   if(!PKG.concepts||!PKG.concepts.length)throw new Error('concepts.json ריק או בפורמט לא צפוי.');
+   return loadCurrent();
+  }).then(function(){
+   var plan=[],i=0,miss=0;
+   function next(){
+    if(i>=PKG.concepts.length)return Promise.resolve();
+    var c=PKG.concepts[i++],p={c:c,vf:rel[c.video],imf:rel[c.image]};
+    $('scanMsg').textContent='סורק ומחשב טביעות… '+i+'/'+PKG.concepts.length;
+    if(!p.vf||!p.imf)miss++;
+    var ex=curById[c.id];p.ex=ex;
+    var jobs=[p.vf?p.vf.arrayBuffer().then(sha).then(function(h){p.vh=h}):0,p.imf?p.imf.arrayBuffer().then(sha).then(function(h){p.ih=h}):0];
+    return Promise.all(jobs).then(function(){
+     var man=(ex&&ex.manual)||{};
+     p.textChanged=!ex||TEXT.some(function(k){return c[k]!==undefined&&st(c[k])!==st(ex[k])&&!man[k]});
+     p.textChangedAll=!ex||TEXT.some(function(k){return c[k]!==undefined&&st(c[k])!==st(ex[k])});
+     p.vidChanged=!!p.vf&&(!ex||ex.videoHash!==p.vh);
+     p.imgChanged=!!p.imf&&(!ex||ex.imageHash!==p.ih);
+     plan.push(p);return next();
+    });
+   }
+   return next().then(function(){
+    PLAN=plan;
+    var nNew=plan.filter(function(p){return!p.ex}).length;
+    var nTxt=plan.filter(function(p){return p.ex&&p.textChangedAll}).length;
+    var nMed=plan.filter(function(p){return p.vidChanged||p.imgChanged}).length;
+    var bytes=plan.reduce(function(a,p){return a+(p.vidChanged?p.vf.size:0)+(p.imgChanged?p.imf.size:0)},0);
+    $('stats').innerHTML=[['מושגים בחבילה',plan.length],['חדשים',nNew],['טקסט ישתנה',nTxt],['מדיה להעלאה',nMed+' ('+mb(bytes)+')'],['קבצים חסרים',miss],['גרסה',PKG.version||'-']]
+     .map(function(a){return'<div class="stat"><b>'+a[1]+'</b><span>'+a[0]+'</span></div>'}).join('');
+    $('scanMsg').innerHTML='<span class="ok">הסריקה הסתיימה. עדיין לא נכתב דבר.</span>';
+    $('plan').hidden=false;
+   });
+  });
+ }
+
+ /* ---- העלאות ---- */
+ function putVideo(p){
+  var id=p.c.id;
+  return p.vf.arrayBuffer().then(function(ab){
+   var u8=new Uint8Array(ab),n=Math.ceil(u8.length/CH),oldN=(p.ex&&p.ex.videoChunks)||0,i=0;
+   function nx(){
+    if(i>=n)return Promise.resolve();
+    var k=i++;
+    return db.collection('dictVideos').doc(id+'__'+k).set({id:id,i:k,n:n,data:firebase.firestore.Blob.fromUint8Array(u8.slice(k*CH,(k+1)*CH))}).then(nx);
+   }
+   return nx().then(function(){
+    var d=[];for(var k=n;k<oldN;k++)d.push(db.collection('dictVideos').doc(id+'__'+k).delete());
+    return Promise.all(d);
+   }).then(function(){return{videoChunks:n,videoBytes:u8.length,videoHash:p.vh}});
+  });
+ }
+ function putImage(p){
+  return p.imf.arrayBuffer().then(function(ab){
+   return db.collection('dictImages').doc(p.c.id).set({id:p.c.id,mime:'image/jpeg',data:firebase.firestore.Blob.fromUint8Array(new Uint8Array(ab))})
+    .then(function(){return{imageBytes:ab.byteLength,imageHash:p.ih}});
+  });
+ }
+ function pool(items,n,fn,onDone){
+  var i=0,active=0,err=null;
+  return new Promise(function(res,rej){
+   function pump(){
+    if(err)return;
+    if(i>=items.length&&active===0)return res();
+    while(active<n&&i<items.length){
+     (function(it){active++;fn(it).then(function(){active--;onDone();pump()}).catch(function(e){err=e;rej(e)})})(items[i++]);
+    }
+   }
+   pump();
+  });
+ }
+
+ function mergeEl(old,p,over){
+  var man=(old&&old.manual)||{},el=Object.assign({},old||{});
+  TEXT.forEach(function(k){
+   if(p.c[k]===undefined)return;
+   if(old&&man[k]&&!over)return;
+   el[k]=p.c[k];
+  });
+  el.id=p.c.id;el.manual=over?{}:man;
+  if(p.media)Object.keys(p.media).forEach(function(k){el[k]=p.media[k]});
+  el.updatedAt=Date.now();
+  return clean(el);
+ }
+
+ $('go').onclick=function(){
+  if(!PLAN||!me)return;
+  var useMedia=$('optMedia').checked,over=$('optOver').checked;
+  $('go').disabled=true;$('dir').disabled=true;$('prog').hidden=false;$('log').textContent='';
+  var uploads=[];
+  if(useMedia)PLAN.forEach(function(p){if(p.vidChanged||p.imgChanged)uploads.push(p)});
+  var total=uploads.length+1,done=0;
+  function tick(t){done++;$('barI').style.width=Math.round(done/total*100)+'%';$('progT').textContent=t||(done+'/'+total)}
+  log('מתחיל. מדיה להעלאה: '+uploads.length+' מושגים.');
+  pool(uploads,3,function(p){
+   var tasks=[];p.media={};
+   if(p.vidChanged)tasks.push(putVideo(p).then(function(m){Object.assign(p.media,m)}));
+   if(p.imgChanged)tasks.push(putImage(p).then(function(m){Object.assign(p.media,m)}));
+   return Promise.all(tasks).then(function(){log('מדיה הועלתה: '+p.c.lesson+' '+p.c.id)});
+  },function(){tick('מעלה מדיה… '+(done+1)+'/'+uploads.length)})
+  .then(function(){
+   var by={};
+   PLAN.forEach(function(p){
+    var need=p.media&&Object.keys(p.media).length||(over?p.textChangedAll:p.textChanged)||!p.ex;
+    if(!need)return;
+    (by[p.c.track]=by[p.c.track]||[]).push(p);
+   });
+   var tracks=Object.keys(by),hist=[];
+   log('מעדכן טקסטים ב-'+tracks.length+' מסלולים…');
+   var chain=Promise.resolve();
+   tracks.forEach(function(tr){
+    chain=chain.then(function(){
+     var ref=db.collection('dictIndex').doc('t_'+tr);
+     return db.runTransaction(function(tx){
+      return tx.get(ref).then(function(s){
+       var arr=s.exists?(s.data().concepts||[]):[],map={};
+       arr.forEach(function(e){map[e.id]=e});
+       by[tr].forEach(function(p){
+        var old=map[p.c.id],ne=mergeEl(old,p,over);
+        if(old&&st(old)!==st(ne)&&(over?p.textChangedAll:p.textChanged))hist.push({id:p.c.id,before:old});
+        map[p.c.id]=ne;
+       });
+       var out=Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return lessonKey(a.lesson)-lessonKey(b.lesson)});
+       tx.set(ref,{track:tr,concepts:out,updatedAt:Date.now()});
+      });
+     }).then(function(){log('מסלול '+tr+': '+by[tr].length+' מושגים עודכנו')});
+    });
+   });
+   return chain.then(function(){
+    var h=hist.map(function(x){return db.collection('dictHistory').doc(x.id+'__'+Date.now()+'_'+Math.random().toString(36).slice(2,6)).set({id:x.id,at:Date.now(),by:me.uid,reason:'import '+(PKG.version||''),before:clean(x.before)})});
+    return Promise.all(h).then(function(){log('נשמרה היסטוריה ל-'+hist.length+' מושגים')});
+   }).then(function(){
+    return db.collection('dictIndex').doc('_meta').set({version:PKG.version||'',count:PKG.concepts.length,tracks:clean(PKG.tracks||[]),importedAt:Date.now(),importedBy:me.email});
+   });
+  }).then(function(){
+   tick('הסתיים');$('barI').style.width='100%';
+   log('✔ הייבוא הסתיים בהצלחה.');
+   $('go').disabled=false;$('dir').disabled=false;
+  }).catch(function(e){
+   log('✖ שגיאה: '+(e&&e.message||e));
+   log('אפשר לבחור את התיקייה שוב ולהתחיל מחדש. הייבוא בטוח להרצה חוזרת (עדכון לפי id).');
+   $('go').disabled=false;$('dir').disabled=false;
+  });
+ };
+})();
+</script>
+</body>
+</html>
