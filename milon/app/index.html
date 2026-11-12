@@ -18,6 +18,36 @@ button{font:inherit;color:inherit;cursor:pointer}
 a{color:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.shell .wrap{max-width:1000px;margin:0}
+
+
+/* shell + sidebar */
+.shell{display:flex;align-items:flex-start;max-width:1560px;margin:0 auto}
+#root{flex:1;min-width:0}
+.side{width:340px;flex:none;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;border-left:1px solid var(--line);background:#fafaf8}
+.sin{padding:14px 14px 30px}
+.side .search{max-width:none}
+.side .chips{gap:6px;margin-top:10px}
+.side .chip{padding:6px 11px;font-size:13px;border-radius:99px}
+.side .filt{margin-top:10px;font-size:12.5px;gap:12px}
+.side .scount{margin-top:12px;font-size:12px;font-weight:700;color:var(--mute)}
+.side .ch{margin:14px 6px 4px;font-size:12px;font-weight:800;letter-spacing:.04em;color:#8a8a84}
+.row{display:flex;gap:8px;align-items:center;width:100%;text-align:right;padding:8px 8px;border-radius:10px;border:0;background:none;transition:background .12s}
+.row:hover{background:#efefea}
+.row.on{background:#e3f8ea}
+.row .no{color:var(--gd);font-weight:800;font-size:12.5px;width:36px;direction:ltr;text-align:left;flex:none}
+.row .nm{flex:1;font-weight:600;font-size:14px;line-height:1.25;min-width:0}
+.row .nm small{display:block;font-weight:400;color:var(--mute);font-size:11.5px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sn{width:16px;height:16px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex:none}
+.row .sn svg{width:10px;height:10px;stroke:#06220f;stroke-width:3;fill:none}
+.menuBtn{display:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-weight:700;font-size:13px}
+.scrim{display:none;position:fixed;inset:62px 0 0 0;background:rgba(0,0,0,.35);z-index:25}
+@media(max-width:959px){
+ .menuBtn{display:inline-block}
+ .side{position:fixed;top:62px;right:0;bottom:0;height:auto;width:min(90vw,380px);z-index:30;transform:translateX(100%);transition:transform .25s;box-shadow:-10px 0 30px rgba(0,0,0,.18)}
+ body.menu .side{transform:none}
+ body.menu .scrim{display:block}
+}
 
 /* header */
 .top{position:sticky;top:0;z-index:20;background:rgba(245,245,243,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
@@ -92,7 +122,7 @@ a{color:inherit}
 .cp h2{font-weight:900;font-size:clamp(28px,5vw,46px);letter-spacing:-.03em;line-height:1.1;margin-top:8px}
 .cp .full{margin-top:6px;color:var(--mute);font-size:16px;direction:ltr;text-align:right}
 .cols{display:grid;grid-template-columns:1fr;gap:22px;margin-top:20px}
-@media(min-width:960px){.cols{grid-template-columns:1.35fr 1fr;align-items:start}}
+@media(min-width:1180px){.cols{grid-template-columns:1.35fr 1fr;align-items:start}}
 .vid{position:relative;border-radius:16px;overflow:hidden;background:#0A0A0A;aspect-ratio:16/9;border:1px solid var(--line)}
 .vid video,.vid .ph{width:100%;height:100%;display:block;object-fit:contain;background:#0A0A0A}
 .vid .ph{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#8bd9a8;font-size:14px}
@@ -133,13 +163,15 @@ a{color:inherit}
 <body>
 <div class="demo" id="demoBar" hidden>מצב הדגמה: נתוני דוגמה בלבד, ללא סרטונים אמיתיים</div>
 <header class="top"><div class="wrap">
+ <button class="menuBtn" id="menuBtn">☰ מילון</button>
  <a class="logo" href="#/" aria-label="IDT"><i></i>DT</a>
  <span class="sp"></span>
  <span class="who" id="who"></span>
  <button class="lnk" id="out" hidden>התנתקות</button>
 </div></header>
 
-<main id="root"><div class="ld"><i></i></div></main>
+<div class="shell"><aside class="side" id="side"></aside><main id="root"><div class="ld"><i></i></div></main></div>
+<div class="scrim" id="scrim"></div>
 
 <footer class="foot"><div class="wrap">© IDT — איתמר לשנסקי. כל הזכויות שמורות. אין להעתיק, להקליט או להפיץ את תכני המילון.<br>התכנים לימודיים בלבד ואינם מהווים ייעוץ השקעות. המסחר כרוך בסיכון.</div></footer>
 
@@ -226,38 +258,13 @@ a{color:inherit}
  function markSeen(id){if(seen[id])return;seen[id]=Date.now();try{localStorage.setItem(seenKey(),JSON.stringify(seen))}catch(e){}}
  function seenCount(){return ORDER.filter(function(i){return seen[i]}).length}
 
- /* ---------- תצוגה: רשימה ---------- */
+ /* ---------- תצוגה: צד + מסך ראשי ---------- */
  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
  var CHECK='<svg viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.4"/></svg>';
- function renderList(keepSearch){
-  revoke();
-  var total=ORDER.length,sc=seenCount();
-  var tracksHtml=DATA.tracks.map(function(t){
-   var n=DATA.concepts.filter(function(c){return c.track===t.id}).length;if(!n)return'';
-   return'<button class="chip'+(S.track===t.id?' on':'')+'" data-t="'+t.id+'">'+esc(t.name)+' <small>'+n+'</small></button>';
-  }).join('');
-  var allBtn='<button class="chip'+(S.track===''?' on':'')+'" data-t="">הכול <small>'+total+'</small></button>';
-  var cur=DATA.tracks.filter(function(t){return t.id===S.track})[0];
-  var cats=(cur&&cur.categories||[]).map(function(c){return'<button class="chip'+(S.cat===c?' on':'')+'" data-c="'+esc(c)+'">'+esc(c)+'</button>'}).join('');
-  var nextId=ORDER.filter(function(i){return!seen[i]})[0];
-  root.innerHTML=
-   '<div class="wrap">'+
-   '<section class="hero"><h1>מילון <span>המושגים</span></h1>'+
-   '<p>מושגי מסחר בעברית. לכל מושג הגדרה, דוגמאות וסרטון קצר, בלי סאונד ובלי קריינות בשלב הזה.</p>'+
-   '<div class="prog"><div class="pbar"><i style="width:'+(total?Math.round(sc/total*100):0)+'%"></i></div><span class="pt">נצפו '+sc+' מתוך '+total+'</span>'+
-   (nextId?'<button class="btn g" id="resume">'+(sc?'המשך מאיפה שעצרת':'התחל ללמוד')+'</button>':'')+'</div></section>'+
-   '<div class="tools"><div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש בעברית או באנגלית: FVG, תמ״ג, שבירת מבנה" autocomplete="off" value="'+esc(S.q)+'"></div></div>'+
-   '<div class="chips tabs" id="tabs">'+allBtn+tracksHtml+'</div>'+
-   (cats?'<div class="chips sub" id="cats">'+cats+'</div>':'')+
-   '<div class="filt"><label><input type="checkbox" id="fCore"'+(S.tier==='core'?' checked':'')+'>רק מושגי ליבה</label><label><input type="checkbox" id="fUn"'+(S.unseen?' checked':'')+'>רק שלא נצפו</label></div>'+
-   '<div id="res"></div></div>';
-  bindList();drawResults();
-  if(keepSearch){var q=$('q');q.focus();var v=q.value;q.value='';q.value=v}
- }
+ function activeId(){var m=(location.hash||'').match(/^#\/c\/(.+)$/);return m?decodeURIComponent(m[1]):''}
  function filtered(){
-  var qs=String(S.q||'').split(/\s+/).map(norm).filter(Boolean),q=qs.join(''),list=DATA.concepts.filter(function(c){
+  var qs=String(S.q||'').split(/\s+/).map(norm).filter(Boolean),list=DATA.concepts.filter(function(c){
    if(S.track&&c.track!==S.track)return false;
-   if(S.cat&&c.category!==S.cat)return false;
    if(S.tier&&c.tier!==S.tier)return false;
    if(S.unseen&&seen[c.id])return false;
    return true;
@@ -267,15 +274,64 @@ a{color:inherit}
   }
   return list;
  }
+ function enOf(c){return c.fullName&&c.fullName!==c.hebrewName?c.fullName:c.name}
  function cardHtml(c){
-  var en=c.fullName&&c.fullName!==c.hebrewName?c.fullName:c.name;
+  var en=enOf(c);
   var abbr=c.abbr&&c.abbr!==en?'<div class="full">'+esc(c.abbr)+'</div>':'';
   return'<button class="card" data-id="'+esc(c.id)+'"><div class="m"><div class="he">'+esc(c.hebrewName||c.name)+'</div><div class="en">'+esc(en)+'</div>'+abbr+'</div>'+
    '<div class="l"><span class="no">'+esc(c.lesson)+'</span><span class="tr"><b class="'+(c.tier==='core'?'core':'')+'"></b>'+(c.tier==='core'?'ליבה':'בסיסי')+'</span></div>'+
    (seen[c.id]?'<span class="seen">'+CHECK+'</span>':'')+'</button>';
  }
+ function rowHtml(c,act){
+  return'<button class="row'+(c.id===act?' on':'')+'" data-id="'+esc(c.id)+'"><span class="no">'+esc(c.lesson)+'</span><span class="nm">'+esc(c.hebrewName||c.name)+'<small>'+esc(enOf(c))+'</small></span>'+(seen[c.id]?'<span class="sn">'+CHECK+'</span>':'')+'</button>';
+ }
+ function initSide(){
+  $('side').innerHTML='<div class="sin"><div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש: FVG, תמ״ג, שבירת מבנה" autocomplete="off"></div>'+
+   '<div class="chips" id="tabs"></div>'+
+   '<div class="filt"><label><input type="checkbox" id="fCore">רק ליבה</label><label><input type="checkbox" id="fUn">רק שלא נצפו</label></div>'+
+   '<div class="scount" id="sc"></div><div id="sl"></div></div>';
+  var t;$('q').oninput=function(){var v=this.value;clearTimeout(t);t=setTimeout(function(){S.q=v;sync()},120)};
+  $('tabs').onclick=function(e){var b=e.target.closest('[data-t]');if(!b)return;S.track=b.dataset.t;sync()};
+  $('fCore').onchange=function(){S.tier=this.checked?'core':'';sync()};
+  $('fUn').onchange=function(){S.unseen=this.checked;sync()};
+  $('sl').onclick=function(e){var b=e.target.closest('[data-id]');if(!b)return;document.body.classList.remove('menu');location.hash='#/c/'+encodeURIComponent(b.dataset.id)};
+ }
+ function drawSide(scrollActive){
+  var side=$('side'),st=side.scrollTop,act=activeId(),total=ORDER.length;
+  $('tabs').innerHTML='<button class="chip'+(S.track===''?' on':'')+'" data-t="">הכול <small>'+total+'</small></button>'+DATA.tracks.map(function(t){
+   var n=DATA.concepts.filter(function(c){return c.track===t.id}).length;if(!n)return'';
+   return'<button class="chip'+(S.track===t.id?' on':'')+'" data-t="'+t.id+'">'+esc(t.name)+' <small>'+n+'</small></button>';
+  }).join('');
+  var list=filtered(),h='';
+  $('sc').textContent=list.length+' מושגים';
+  if(!list.length)h='<div class="empty">לא נמצאו מושגים</div>';
+  else if(S.q)h=list.map(function(c){return rowHtml(c,act)}).join('');
+  else{
+   var lastK='';
+   list.forEach(function(c){var k=c.track+'|'+c.category;if(k!==lastK){lastK=k;h+='<div class="ch">'+esc((S.track?'':(c.trackName||c.track)+' · ')+(c.category||''))+'</div>'}h+=rowHtml(c,act)});
+  }
+  $('sl').innerHTML=h;
+  side.scrollTop=st;
+  if(scrollActive){var r=$('sl').querySelector('.row.on');if(r)r.scrollIntoView({block:'nearest'})}
+ }
+ function sync(){drawSide();if(!activeId())drawResults()}
+ function renderList(){
+  revoke();
+  var total=ORDER.length,sc=seenCount();
+  var nextId=ORDER.filter(function(i){return!seen[i]})[0];
+  root.innerHTML='<div class="wrap">'+
+   '<section class="hero"><h1>מילון <span>המושגים</span></h1>'+
+   '<p>מושגי מסחר בעברית. לכל מושג הגדרה, דוגמאות וסרטון קצר. החיפוש והרשימה המלאה תמיד בצד.</p>'+
+   '<div class="prog"><div class="pbar"><i style="width:'+(total?Math.round(sc/total*100):0)+'%"></i></div><span class="pt">נצפו '+sc+' מתוך '+total+'</span>'+
+   (nextId?'<button class="btn g" id="resume">'+(sc?'המשך מאיפה שעצרת':'התחל ללמוד')+'</button>':'')+'</div></section>'+
+   '<div id="res"></div></div>';
+  $('res').onclick=function(e){var b=e.target.closest('[data-id]');if(b)location.hash='#/c/'+encodeURIComponent(b.dataset.id)};
+  var r=$('resume');if(r)r.onclick=function(){var n=ORDER.filter(function(i){return!seen[i]})[0];if(n)location.hash='#/c/'+encodeURIComponent(n)};
+  drawResults();window.scrollTo(0,0);
+ }
  function drawResults(){
-  var list=filtered(),res=$('res'),h='';
+  var list=filtered(),res=$('res');if(!res)return;
+  var h='';
   if(!list.length){res.innerHTML='<div class="empty">לא נמצאו מושגים. נסה חיפוש אחר או הסר פילטר.</div>';return}
   h+='<div class="count">'+list.length+' מושגים</div>';
   if(S.q){h+='<div class="grid">'+list.map(cardHtml).join('')+'</div>'}
@@ -287,15 +343,6 @@ a{color:inherit}
    });
   }
   res.innerHTML=h;
- }
- function bindList(){
-  $('tabs').onclick=function(e){var b=e.target.closest('[data-t]');if(!b)return;S.track=b.dataset.t;S.cat='';renderList()};
-  var cats=$('cats');if(cats)cats.onclick=function(e){var b=e.target.closest('[data-c]');if(!b)return;S.cat=(S.cat===b.dataset.c)?'':b.dataset.c;renderList()};
-  var t;$('q').oninput=function(){var v=this.value;clearTimeout(t);t=setTimeout(function(){S.q=v;drawResults()},120)};
-  $('fCore').onchange=function(){S.tier=this.checked?'core':'';drawResults()};
-  $('fUn').onchange=function(){S.unseen=this.checked;drawResults()};
-  $('res').onclick=function(e){var b=e.target.closest('[data-id]');if(b)location.hash='#/c/'+encodeURIComponent(b.dataset.id)};
-  var r=$('resume');if(r)r.onclick=function(){var n=ORDER.filter(function(i){return!seen[i]})[0];if(n)location.hash='#/c/'+encodeURIComponent(n)};
  }
 
  /* ---------- תצוגה: דף מושג ---------- */
@@ -313,7 +360,7 @@ a{color:inherit}
   var also=(c.alsoKnownAs||[]).length?'<div class="box"><h4>ידוע גם בשם</h4><div class="also">'+c.alsoKnownAs.map(function(a){return'<span>'+esc(a)+'</span>'}).join('')+'</div></div>':'';
   var full=c.fullName&&c.abbr&&c.fullName!==c.abbr?esc(c.fullName)+' ('+esc(c.abbr)+')':esc(c.fullName||c.name);
   root.innerHTML='<div class="wrap cp">'+
-   '<button class="back" id="bk">→ חזרה למילון</button>'+
+   '<button class="back" id="bk">→ למסך הראשי</button>'+
    '<div class="meta"><b>'+esc(c.lesson)+'</b><span>'+esc(tn)+'</span><span>·</span><span>'+esc(c.category||'')+'</span></div>'+
    '<h2>'+esc(c.hebrewName||c.name)+'</h2><div class="full">'+full+'</div>'+
    '<div class="cols"><div><div class="vid" id="vid"><div class="ph"><span class="logo"><i></i>DT</span><span class="spin"></span></div></div>'+
@@ -325,7 +372,7 @@ a{color:inherit}
   $('bk').onclick=function(){if(history.length>1&&document.referrer.indexOf(location.host)>=0)history.back();else location.hash='#/'};
   if(prev)$('pv').onclick=function(){location.hash='#/c/'+encodeURIComponent(prev.id)};
   if(next)$('nx').onclick=function(){location.hash='#/c/'+encodeURIComponent(next.id)};
-  seenT=setTimeout(function(){markSeen(id)},6000);
+  seenT=setTimeout(function(){markSeen(id);drawSide()},6000);
   loadMedia(c);
  }
  function mountWatermark(box){
@@ -354,7 +401,7 @@ a{color:inherit}
    v.src=url;if(poster)v.poster=poster;v.controls=true;v.playsInline=true;v.preload='auto';
    v.setAttribute('controlsList','nodownload noremoteplayback');v.setAttribute('disablePictureInPicture','');
    v.addEventListener('contextmenu',function(e){e.preventDefault()});
-   v.addEventListener('ended',function(){markSeen(reqId)});
+   v.addEventListener('ended',function(){markSeen(reqId);drawSide()});
    box.innerHTML='';box.appendChild(v);mountWatermark(box);
   }).catch(function(e){
    box.innerHTML='<div class="ph"><span>לא ניתן לטעון את הסרטון כרגע</span></div>';
@@ -366,8 +413,11 @@ a{color:inherit}
   var h=location.hash||'#/';
   var m=h.match(/^#\/c\/(.+)$/);
   if(m)renderConcept(decodeURIComponent(m[1]));else renderList();
+  drawSide(true);
  }
  window.addEventListener('hashchange',route);
+ $('menuBtn').onclick=function(){document.body.classList.toggle('menu')};
+ $('scrim').onclick=function(){document.body.classList.remove('menu')};
  document.addEventListener('keydown',function(e){
   var m=(location.hash||'').match(/^#\/c\/(.+)$/);if(!m)return;
   var i=ORDER.indexOf(decodeURIComponent(m[1]));
@@ -376,13 +426,13 @@ a{color:inherit}
  });
 
  /* ---------- אתחול ---------- */
- function deny(msg,btn){root.innerHTML='<div class="state"><h2>'+msg[0]+'</h2><p>'+msg[1]+'</p>'+(btn?'<a class="btn" href="'+btn[1]+'">'+btn[0]+'</a>':'')+'</div>'}
+ function deny(msg,btn){$('side').style.display='none';root.innerHTML='<div class="state"><h2>'+msg[0]+'</h2><p>'+msg[1]+'</p>'+(btn?'<a class="btn" href="'+btn[1]+'">'+btn[0]+'</a>':'')+'</div>'}
  function start(){
   loadSeen();
   var p=DEMO?Promise.resolve(demoData()):loadReal();
   p.then(function(d){
    if(!d.concepts.length){deny(['המילון עדיין ריק','התוכן בדרך. נעדכן אותך ברגע שהוא נפתח.']);return}
-   prepare(d);route();
+   prepare(d);initSide();route();
   }).catch(function(e){
    if(e&&e.code==='permission-denied')deny(['אין לך עדיין גישה למילון','הגישה נפתחת אחרי הרשמה עם אימייל מאומת.'],['להרשמה','/milon/']);
    else deny(['משהו השתבש','נסה לרענן את הדף בעוד רגע.']);
