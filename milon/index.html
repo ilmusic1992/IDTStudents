@@ -194,10 +194,10 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
  function pad(i){return (i<10?'0':'')+i}
  function draw(){
   var k=Math.round(cur),i;
-  if(imgs[k]){ctx.drawImage(imgs[k],0,0);return}
-  for(i=1;i<N;i++){var a=imgs[k-i],b=imgs[k+i];if(a){ctx.drawImage(a,0,0);return}if(b){ctx.drawImage(b,0,0);return}}
+  if(imgs[k]){ctx.drawImage(imgs[k],0,0,cv.width,cv.height);return}
+  for(i=1;i<N;i++){var a=imgs[k-i],b=imgs[k+i];if(a){ctx.drawImage(a,0,0,cv.width,cv.height);return}if(b){ctx.drawImage(b,0,0,cv.width,cv.height);return}}
  }
- function loadFrame(i){var im=new Image();im.decoding='async';im.onload=function(){imgs[i]=im;draw()};im.src='f'+pad(i)+'.webp'}
+ function loadFrame(i){var im=new Image();im.decoding='async';im.onload=function(){imgs[i]=im;draw()};im.src='f'+pad(i)+'.webp?v=2'}
  loadFrame(0);loadFrame(N-1);
  (function(){var i=1;function nxt(){if(i<N-1){loadFrame(i++);setTimeout(nxt,i<10?0:25)}}setTimeout(nxt,50)})();
  function tick(){raf=0;var d=tgt-cur;if(Math.abs(d)<.05){cur=tgt;draw();return}cur+=d*.2;draw();raf=requestAnimationFrame(tick)}
