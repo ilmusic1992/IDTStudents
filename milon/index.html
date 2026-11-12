@@ -31,7 +31,7 @@ a{color:inherit}
 .art{position:relative;order:1;min-height:0;height:46vh;display:flex;align-items:center;justify-content:center}
 @supports(height:1svh){.art{height:46svh}}
 .plate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-\.plate canvas{width:100%;height:100%;object-fit:contain;display:block;mix-blend-mode:screen;
+.plate canvas{width:100%;height:100%;object-fit:contain;display:block;
   filter:hue-rotate(var(--hr));transition:filter .9s;
   transform:scale(calc(1 + var(--p) * .06));transform-origin:50% 55%;will-change:transform;
   -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 56%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 56%,transparent 100%)}
