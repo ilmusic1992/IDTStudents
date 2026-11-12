@@ -140,7 +140,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
    <label class="f" for="t3">טלפון</label><input type="tel" id="t3" dir="ltr" inputmode="tel" autocomplete="tel">
    <label class="chk"><input type="checkbox" id="c3"><span>אני מאשר/ת קבלת עדכונים ותכנים שיווקיים בדוא״ל. אפשר להסיר בכל עת.</span></label>
    <button class="btn s" type="submit">סיום</button><div class="msg" id="m3" role="status"></div></form>
-  <div class="panel" id="pd" hidden><p class="big" id="pdt">נכנסת בהצלחה</p><p class="sm">דף המילון בבנייה אחרונה. נעדכן אותך ברגע שהוא נפתח.</p><a class="btn s" target="_blank" rel="noopener" href="https://wa.me/972552616624?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%90%D7%99%D7%AA%D7%9E%D7%A8%2C%20%D7%A0%D7%A8%D7%A9%D7%9E%D7%AA%D7%99%20%D7%9C%D7%9E%D7%99%D7%9C%D7%95%D7%9F%20%D7%94%D7%9E%D7%95%D7%A9%D7%92%D7%99%D7%9D" >עדכון בוואטסאפ</a><button class="btn" type="button" id="out">התנתקות</button></div>
+  <div class="panel" id="pd" hidden><p class="big" id="pdt">נכנסת בהצלחה</p><p class="sm">מעבירים אותך למילון…</p><a class="btn s" href="/milon/app/">כניסה למילון</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/972552616624?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%90%D7%99%D7%AA%D7%9E%D7%A8%2C%20%D7%A0%D7%A8%D7%A9%D7%9E%D7%AA%D7%99%20%D7%9C%D7%9E%D7%99%D7%9C%D7%95%D7%9F%20%D7%94%D7%9E%D7%95%D7%A9%D7%92%D7%99%D7%9D" >שיחה בוואטסאפ</a><button class="btn" type="button" id="out">התנתקות</button></div>
  </div>
 </div>
 
@@ -209,7 +209,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
  function open(){sh.classList.add('open')}
  function close(){sh.classList.remove('open')}
  function ctaOpen(){
-  if(signedIn){showPanel('pd','ברוך שובך'+(signedName?', '+signedName:''),'');$('pdt').textContent='אתה מחובר';}
+  if(signedIn){location.href='/milon/app/';return}
   else showPanel('p'+cur,M[cur].gt,M[cur].gs);
   open();
  }
@@ -254,6 +254,7 @@ input:focus{border-color:rgb(var(--hue));box-shadow:0 0 0 3px rgba(var(--hue),.1
   signedIn=true;signedName=name||'';
   $('pdt').textContent=isNew?'נרשמת בהצלחה':'שמחים שחזרת';
   showPanel('pd',name?('היי '+name):'ברוך הבא','');open();
+  setTimeout(function(){location.href='/milon/app/'},1500);
  }
  function ensureProfile(f){
   var u=f.auth.currentUser,ref=f.db.collection('milonUsers').doc(u.uid);
