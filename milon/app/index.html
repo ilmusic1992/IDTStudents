@@ -45,6 +45,29 @@ a{color:inherit}
 .row .nm small{display:block;font-weight:400;color:var(--mute);font-size:11.5px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .sn{width:16px;height:16px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex:none}
 .row .sn svg{width:10px;height:10px;stroke:#06220f;stroke-width:3;fill:none}
+
+.seg{display:flex;background:#ecece7;border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:9px;padding:8px 6px;font-size:13.5px;font-weight:700;color:var(--mute);transition:.15s}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.seg.sm{margin-top:8px}
+.seg.sm button{padding:5px 6px;font-size:12px}
+.strip{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
+.strip button{min-width:28px;height:28px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px;font-weight:700;padding:0 6px}
+.strip button:hover{border-color:var(--g);color:var(--gd)}
+.side .lh2{margin:16px 6px 4px;font-size:15px;font-weight:900;color:var(--gd);border-bottom:2px solid var(--g);padding-bottom:2px;display:inline-block;min-width:28px}
+.dict .lh{display:flex;align-items:center;gap:12px;margin:30px 0 6px;scroll-margin-top:80px}
+.dict .lh b{font-size:40px;font-weight:900;line-height:1;color:var(--ink);min-width:46px}
+.dict .lh i{flex:1;height:2px;background:var(--g);opacity:.5}
+.dict .cols2{columns:1;column-gap:34px}
+@media(min-width:1100px){.dict .cols2{columns:2}}
+.ent{display:block;width:100%;text-align:right;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 4px;break-inside:avoid;transition:background .12s}
+.ent:hover{background:#fff}
+.ent .et{font-weight:800;font-size:17px}
+.ent .ee{font-size:13px;color:var(--mute);margin-inline-start:8px;direction:ltr;unicode-bidi:embed}
+.ent .en2{float:left;font-weight:800;font-size:12px;color:var(--gd);direction:ltr}
+.ent .ed{display:block;margin-top:3px;font-size:14.5px;color:#3d3d39;line-height:1.5}
+.ent .sn2{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--g);vertical-align:middle;margin-inline-start:6px}
+.ent .sn2 svg{width:9px;height:9px;stroke:#06220f;stroke-width:3;fill:none;display:block;margin:2.5px}
 .menuBtn{display:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-weight:700;font-size:13px}
 .scrim{display:none;position:fixed;inset:62px 0 0 0;background:rgba(0,0,0,.35);z-index:25}
 @media(max-width:959px){
@@ -189,7 +212,8 @@ a{color:inherit}
  var $=function(i){return document.getElementById(i)};
  var root=$('root');
  var DATA={tracks:[],concepts:[]},BY={},ORDER=[];
- var S={track:'',cat:'',q:'',tier:'',unseen:false};
+ var S={track:'',cat:'',q:'',tier:'',unseen:false,view:'path',lang:'he'};
+ try{S.view=localStorage.getItem('milonView')||'path';S.lang=localStorage.getItem('milonLang')||'he'}catch(e){}
  var me=null,seen={},db=null,auth=null,curUrls=[],started=false;
 
  /* ---------- דמו ---------- */
@@ -266,6 +290,25 @@ a{color:inherit}
  /* ---------- תצוגה: צד + מסך ראשי ---------- */
  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
  var CHECK='<svg viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.4"/></svg>';
+ var FIN={'ך':'כ','ם':'מ','ן':'נ','ף':'פ','ץ':'צ'},HE='אבגדהוזחטיכלמנסעפצקרשת';
+ function azKey(c){var s=(S.lang==='en')?(c.fullName||c.name):(c.hebrewName||c.name);return String(s||'').replace(/[֑-ׇ]/g,'').replace(/^[^A-Za-zא-ת0-9]+/,'')}
+ function azLetter(c){var ch=azKey(c).charAt(0);if(!ch)return'#';if(/[א-ת]/.test(ch))return FIN[ch]||ch;if(/[A-Za-z]/.test(ch))return ch.toUpperCase();return'#'}
+ function letOrd(l){var i=HE.indexOf(l);if(i>=0)return(S.lang==='en'?500:0)+i;if(/[A-Z]/.test(l))return(S.lang==='en'?0:500)+l.charCodeAt(0)-65;return 999}
+ function azSort(list){return list.slice().sort(function(a,b){var la=letOrd(azLetter(a)),lb=letOrd(azLetter(b));if(la!==lb)return la-lb;return azKey(a).localeCompare(azKey(b),S.lang==='en'?'en':'he',{sensitivity:'base',numeric:true})})}
+ function azGroups(list){var out=[],cur=null;azSort(list).forEach(function(c){var l=azLetter(c);if(!cur||cur.l!==l){cur={l:l,items:[]};out.push(cur)}cur.items.push(c)});return out}
+ function firstDef(c){return(c.definition&&c.definition[0])||''}
+ function entHtml(c){
+  var en=enOf(c),ab=c.abbr&&c.abbr!==en&&c.abbr!==c.hebrewName?' · '+c.abbr:'';
+  return'<button class="ent" data-id="'+esc(c.id)+'"><span class="en2">'+esc(c.lesson)+'</span><span class="et">'+esc(S.lang==='en'?(c.fullName||c.name):(c.hebrewName||c.name))+'</span>'+(seen[c.id]?'<span class="sn2">'+CHECK+'</span>':'')+
+   '<span class="ee">'+esc(S.lang==='en'?(c.hebrewName||''):en)+esc(ab)+'</span><span class="ed">'+esc(firstDef(c))+'</span></button>';
+ }
+ function stripHtml(groups){return'<div class="strip">'+groups.map(function(g){return'<button data-l="'+esc(g.l)+'">'+esc(g.l)+'</button>'}).join('')+'</div>'}
+ function jump(l,scope){var el=(scope||document).querySelector('[data-lh="'+l+'"]');if(el)el.scrollIntoView({block:'start',behavior:'smooth'})}
+ function setView(v,lang){
+  if(v)S.view=v;if(lang)S.lang=lang;
+  try{localStorage.setItem('milonView',S.view);localStorage.setItem('milonLang',S.lang)}catch(e){}
+  if(!activeId())renderList();drawSide();
+ }
  function waLink(msg){return'https://wa.me/972552616624?text='+encodeURIComponent(msg)}
  function activeId(){var m=(location.hash||'').match(/^#\/c\/(.+)$/);return m?decodeURIComponent(m[1]):''}
  function filtered(){
@@ -292,7 +335,7 @@ a{color:inherit}
   return'<button class="row'+(c.id===act?' on':'')+'" data-id="'+esc(c.id)+'"><span class="no">'+esc(c.lesson)+'</span><span class="nm">'+esc(c.hebrewName||c.name)+'<small>'+esc(enOf(c))+'</small></span>'+(seen[c.id]?'<span class="sn">'+CHECK+'</span>':'')+'</button>';
  }
  function initSide(){
-  $('side').innerHTML='<div class="sin"><div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש: FVG, תמ״ג, שבירת מבנה" autocomplete="off"></div>'+
+  $('side').innerHTML='<div class="sin"><div class="seg" id="segV"><button data-v="path">לימוד</button><button data-v="az">מילון א-ב</button></div><div class="seg sm" id="segL"><button data-g="he">עברית</button><button data-g="en">English</button></div><div class="search" style="margin-top:10px"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש: FVG, תמ״ג, שבירת מבנה" autocomplete="off"></div>'+
    '<div class="chips" id="tabs"></div>'+
    '<div class="filt"><label><input type="checkbox" id="fCore">רק ליבה</label><label><input type="checkbox" id="fUn">רק שלא נצפו</label></div>'+
    '<div class="scount" id="sc"></div><div id="sl"></div>'+
@@ -302,6 +345,9 @@ a{color:inherit}
   $('fCore').onchange=function(){S.tier=this.checked?'core':'';sync()};
   $('fUn').onchange=function(){S.unseen=this.checked;sync()};
   $('sl').onclick=function(e){var b=e.target.closest('[data-id]');if(!b)return;document.body.classList.remove('menu');location.hash='#/c/'+encodeURIComponent(b.dataset.id)};
+  $('segV').onclick=function(e){var b=e.target.closest('[data-v]');if(b)setView(b.dataset.v)};
+  $('segL').onclick=function(e){var b=e.target.closest('[data-g]');if(b)setView(null,b.dataset.g)};
+  $('sl').addEventListener('click',function(e){var b=e.target.closest('[data-l]');if(b)jump(b.dataset.l,$('sl'))});
  }
  function drawSide(scrollActive){
   var side=$('side'),st=side.scrollTop,act=activeId(),total=ORDER.length;
@@ -309,10 +355,14 @@ a{color:inherit}
    var n=DATA.concepts.filter(function(c){return c.track===t.id}).length;if(!n)return'';
    return'<button class="chip'+(S.track===t.id?' on':'')+'" data-t="'+t.id+'">'+esc(t.name)+' <small>'+n+'</small></button>';
   }).join('');
+  [].forEach.call($('segV').children,function(b){b.classList.toggle('on',b.dataset.v===S.view)});
+  [].forEach.call($('segL').children,function(b){b.classList.toggle('on',b.dataset.g===S.lang)});
+  $('segL').style.display=S.view==='az'?'flex':'none';
   var list=filtered(),h='';
   $('sc').textContent=list.length+' מושגים';
   if(!list.length)h='<div class="empty">לא נמצאו מושגים</div>';
   else if(S.q)h=list.map(function(c){return rowHtml(c,act)}).join('');
+  else if(S.view==='az'){var gs=azGroups(list);h=stripHtml(gs);gs.forEach(function(g){h+='<div class="lh2" data-lh="'+esc(g.l)+'">'+esc(g.l)+'</div>'+g.items.map(function(c){return rowHtml(c,act)}).join('')})}
   else{
    var lastK='';
    list.forEach(function(c){var k=c.track+'|'+c.category;if(k!==lastK){lastK=k;h+='<div class="ch">'+esc((S.track?'':(c.trackName||c.track)+' · ')+(c.category||''))+'</div>'}h+=rowHtml(c,act)});
@@ -341,6 +391,14 @@ a{color:inherit}
   var h='';
   if(!list.length){res.innerHTML='<div class="empty">לא נמצאו מושגים. נסה חיפוש אחר או הסר פילטר.</div>';return}
   h+='<div class="count">'+list.length+' מושגים</div>';
+  if(S.view==='az'&&!S.q){
+   var gs=azGroups(list);
+   h+='<div class="dict" id="dict">'+stripHtml(gs);
+   gs.forEach(function(g){h+='<div class="lh" data-lh="'+esc(g.l)+'"><b>'+esc(g.l)+'</b><i></i></div><div class="cols2">'+g.items.map(entHtml).join('')+'</div>'});
+   res.innerHTML=h+'</div>';
+   var dc=$('dict');dc.querySelector('.strip').onclick=function(e){var b=e.target.closest('[data-l]');if(b)jump(b.dataset.l,dc)};
+   return;
+  }
   if(S.q){h+='<div class="grid">'+list.map(cardHtml).join('')+'</div>'}
   else{
    var groups=[],idx={};
