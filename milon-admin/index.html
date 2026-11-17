@@ -58,7 +58,10 @@ label.chk input{margin-top:4px;accent-color:#1ED05F}
 
   <div id="plan" hidden>
    <div class="stats" id="stats"></div>
-   <h2 style="margin-top:6px">2. אפשרויות</h2>
+   <h2 style="margin-top:6px">2. מסלולים לייבוא</h2>
+   <div id="trk" class="mute" style="display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:6px"></div>
+   <p class="mute" id="trkNote"></p>
+   <h2 style="margin-top:14px">3. אפשרויות</h2>
    <label class="chk"><input type="checkbox" id="optMedia" checked><span>להעלות גם סרטונים ותמונות (רק מה שהשתנה או חדש)</span></label>
    <label class="chk"><input type="checkbox" id="optOver"><span>לדרוס גם שדות שנערכו ידנית במילון (ברירת מחדל: לא לדרוס)</span></label>
    <div class="row" style="margin-top:14px"><button id="go" class="g">התחל ייבוא</button></div>
@@ -80,7 +83,7 @@ label.chk input{margin-top:4px;accent-color:#1ED05F}
  firebase.initializeApp({apiKey:"AIzaSyBKCmkE2laXl9WUBCmaXxeXqVquSo3Qzyc",authDomain:"idt-students.firebaseapp.com",projectId:"idt-students",appId:"1:361267160747:web:5334870077c819827cb9ee"});
  var auth=firebase.auth(),db=firebase.firestore();
  var ADMINS=['HI21gFZ70fN1Pa77QetxCDvfBdo2','M4T2wnoJBEQ5vNUtgt22Pz8lphl1'];
- var TEXT=['lesson','track','trackName','category','name','hebrewName','abbr','fullName','tier','definitionSource','title','definition','examples','use','behind','tagline','alsoKnownAs','durationSec','internal'];
+ var TEXT=['lesson','track','trackName','category','name','hebrewName','abbr','fullName','tier','definitionSource','title','definition','examples','use','behind','tagline','alsoKnownAs','durationSec','internal','alsoIn'];
  var CH=800000;
  var $=function(i){return document.getElementById(i)};
  var cur={},curById={},PLAN=null,PKG=null,me=null;
@@ -155,6 +158,11 @@ label.chk input{margin-top:4px;accent-color:#1ED05F}
     $('stats').innerHTML=[['מושגים בחבילה',plan.length],['חדשים',nNew],['טקסט ישתנה',nTxt],['מדיה להעלאה',nMed+' ('+mb(bytes)+')'],['קבצים חסרים',miss],['גרסה',PKG.version||'-']]
      .map(function(a){return'<div class="stat"><b>'+a[1]+'</b><span>'+a[0]+'</span></div>'}).join('');
     $('scanMsg').innerHTML='<span class="ok">הסריקה הסתיימה. עדיין לא נכתב דבר.</span>';
+    var cnt={};plan.forEach(function(p){cnt[p.c.track]=(cnt[p.c.track]||0)+1});
+    var SENS={pension:1};
+    $('trk').innerHTML=(PKG.tracks||[]).filter(function(tr){return cnt[tr.id]}).map(function(tr){
+     return'<label class="chk" style="margin:2px 0"><input type="checkbox" data-tr="'+tr.id+'"'+(SENS[tr.id]?'':' checked')+'><span>'+tr.name+' ('+cnt[tr.id]+')'+(SENS[tr.id]?' · רגיש, לא מסומן כברירת מחדל':'')+'</span></label>'}).join('');
+    $('trkNote').textContent='מסלול שלא מסומן לא נכנס למילון בכלל. אפשר לייבא אותו בהמשך בהרצה נוספת.';
     $('plan').hidden=false;
    });
   });
@@ -211,10 +219,13 @@ label.chk input{margin-top:4px;accent-color:#1ED05F}
 
  $('go').onclick=function(){
   if(!PLAN||!me)return;
+  var SEL={};[].forEach.call(document.querySelectorAll('#trk input'),function(i){if(i.checked)SEL[i.dataset.tr]=1});
+  var PL=PLAN.filter(function(p){return SEL[p.c.track]});
+  if(!PL.length){alert('לא נבחר אף מסלול');return}
   var useMedia=$('optMedia').checked,over=$('optOver').checked;
   $('go').disabled=true;$('dir').disabled=true;$('prog').hidden=false;$('log').textContent='';
   var uploads=[];
-  if(useMedia)PLAN.forEach(function(p){if(p.vidChanged||p.imgChanged)uploads.push(p)});
+  if(useMedia)PL.forEach(function(p){if(p.vidChanged||p.imgChanged)uploads.push(p)});
   var total=uploads.length+1,done=0;
   function tick(t){done++;$('barI').style.width=Math.round(done/total*100)+'%';$('progT').textContent=t||(done+'/'+total)}
   log('מתחיל. מדיה להעלאה: '+uploads.length+' מושגים.');
@@ -226,7 +237,7 @@ label.chk input{margin-top:4px;accent-color:#1ED05F}
   },function(){tick('מעלה מדיה… '+(done+1)+'/'+uploads.length)})
   .then(function(){
    var by={};
-   PLAN.forEach(function(p){
+   PL.forEach(function(p){
     var need=p.media&&Object.keys(p.media).length||(over?p.textChangedAll:p.textChanged)||!p.ex;
     if(!need)return;
     (by[p.c.track]=by[p.c.track]||[]).push(p);
