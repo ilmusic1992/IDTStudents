@@ -25,12 +25,17 @@ a{color:inherit}
 .shell{display:flex;align-items:flex-start;max-width:1560px;margin:0 auto}
 #root{flex:1;min-width:0}
 .side{width:340px;flex:none;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;border-left:1px solid var(--line);background:#fafaf8}
-.sin{min-height:100%;display:flex;flex-direction:column}
-.fb{position:sticky;bottom:0;margin:auto -14px -30px;padding:10px 18px 14px;background:#fafaf8;border-top:1px solid var(--line);font-size:12.5px;color:var(--mute);line-height:1.9}
+#side{display:block;overflow:hidden}
+.sin{height:100%;display:flex;flex-direction:column}
+#sl{flex:1;min-height:0;overflow-y:auto;margin:0 -6px;padding:0 6px}
+#tabs{width:100%;margin-top:10px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:14px;font-weight:700;color:var(--ink);font-family:inherit}
+.fb{flex:none;margin:8px -12px 0;padding:8px 16px 10px;background:#fafaf8;border-top:1px solid var(--line);font-size:12px;color:var(--mute);line-height:1.7}
+.strip{position:sticky;top:0;background:#fafaf8;padding:6px 0;margin-top:6px;z-index:2;flex-wrap:nowrap;overflow-x:auto}
+.strip button{flex:none}
 .fb a{color:var(--gd);font-weight:700}
 .cfb{margin-top:26px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px;color:var(--mute)}
 .cfb a{color:var(--gd);font-weight:700}
-.sin{padding:14px 14px 30px}
+.sin{padding:12px 12px 0}
 .side .search{max-width:none}
 .side .chips{gap:6px;margin-top:10px}
 .side .chip{padding:6px 11px;font-size:13px;border-radius:99px}
@@ -343,12 +348,12 @@ a{color:inherit}
  }
  function initSide(){
   $('side').innerHTML='<div class="sin"><div class="seg" id="segV"><button data-v="path">לימוד</button><button data-v="az">מילון א-ב</button></div><div class="seg sm" id="segL"><button data-g="he">עברית</button><button data-g="en">English</button></div><div class="search" style="margin-top:10px"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש: FVG, תמ״ג, שבירת מבנה" autocomplete="off"></div>'+
-   '<div class="chips" id="tabs"></div>'+
+   '<select id="tabs" aria-label="מסלול"></select>'+
    '<div class="filt"><label><input type="checkbox" id="fCore">רק ליבה</label><label><input type="checkbox" id="fUn">רק שלא נצפו</label></div>'+
    '<div class="scount" id="sc"></div><div id="sl"></div>'+
    '<div class="fb">מצאתם טעות במילון? <a target="_blank" rel="noopener" href="'+waLink('שלום איתמר, מצאתי טעות במילון המושגים: ')+'">כתבו לנו</a><br>חסרים לכם מושגים נוספים? <a target="_blank" rel="noopener" href="'+waLink('שלום איתמר, חסר לי מושג במילון המושגים: ')+'">כתבו לנו</a></div></div>';
   var t;$('q').oninput=function(){var v=this.value;clearTimeout(t);t=setTimeout(function(){S.q=v;sync()},120)};
-  $('tabs').onclick=function(e){var b=e.target.closest('[data-t]');if(!b)return;S.track=b.dataset.t;sync()};
+  $('tabs').onchange=function(){S.track=this.value;sync()};
   $('fCore').onchange=function(){S.tier=this.checked?'core':'';sync()};
   $('fUn').onchange=function(){S.unseen=this.checked;sync()};
   $('sl').onclick=function(e){var b=e.target.closest('[data-id]');if(!b)return;document.body.classList.remove('menu');location.hash='#/c/'+encodeURIComponent(b.dataset.id)};
@@ -357,11 +362,12 @@ a{color:inherit}
   $('sl').addEventListener('click',function(e){var b=e.target.closest('[data-l]');if(b)jump(b.dataset.l,$('sl'))});
  }
  function drawSide(scrollActive){
-  var side=$('side'),st=side.scrollTop,act=activeId(),total=ORDER.length;
-  $('tabs').innerHTML='<button class="chip'+(S.track===''?' on':'')+'" data-t="">הכול <small>'+total+'</small></button>'+DATA.tracks.map(function(t){
+  var side=$('sl'),st=side.scrollTop,act=activeId(),total=ORDER.length;
+  $('tabs').innerHTML='<option value="">כל המסלולים ('+total+')</option>'+DATA.tracks.map(function(t){
    var n=DATA.concepts.filter(function(c){return c.track===t.id||inAlso(c,t.id)}).length;if(!n)return'';
-   return'<button class="chip'+(S.track===t.id?' on':'')+'" data-t="'+t.id+'">'+esc(t.name)+' <small>'+n+'</small></button>';
+   return'<option value="'+t.id+'"'+(S.track===t.id?' selected':'')+'>'+esc(t.name)+' ('+n+')</option>';
   }).join('');
+  $('tabs').value=S.track;
   [].forEach.call($('segV').children,function(b){b.classList.toggle('on',b.dataset.v===S.view)});
   [].forEach.call($('segL').children,function(b){b.classList.toggle('on',b.dataset.g===S.lang)});
   $('segL').style.display=S.view==='az'?'flex':'none';
