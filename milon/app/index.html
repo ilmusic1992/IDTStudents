@@ -72,6 +72,7 @@ a{color:inherit}
 .ent .ed{display:block;margin-top:3px;font-size:14.5px;color:#3d3d39;line-height:1.5}
 .ent .sn2{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--g);vertical-align:middle;margin-inline-start:6px}
 .ent .sn2 svg{width:9px;height:9px;stroke:#06220f;stroke-width:3;fill:none;display:block;margin:2.5px}
+.beta{font-size:11px;font-weight:800;letter-spacing:.06em;color:#0a5a28;background:#e3f8ea;border:1px solid #b6ebcb;border-radius:99px;padding:3px 10px}
 .menuBtn{display:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-weight:700;font-size:13px}
 .scrim{display:none;position:fixed;inset:62px 0 0 0;background:rgba(0,0,0,.35);z-index:25}
 @media(max-width:959px){
@@ -196,7 +197,7 @@ a{color:inherit}
 <div class="demo" id="demoBar" hidden>מצב הדגמה: נתוני דוגמה בלבד, ללא סרטונים אמיתיים</div>
 <header class="top"><div class="wrap">
  <button class="menuBtn" id="menuBtn">☰ מילון</button>
- <a class="logo" href="#/" aria-label="IDT"><i></i>DT</a>
+ <a class="logo" href="#/" aria-label="IDT"><i></i>DT</a><span class="beta">גרסת בטא</span>
  <span class="sp"></span>
  <span class="who" id="who"></span>
  <button class="lnk" id="out" hidden>התנתקות</button>
@@ -205,7 +206,7 @@ a{color:inherit}
 <div class="shell"><aside class="side" id="side"></aside><main id="root"><div class="ld"><i></i></div></main></div>
 <div class="scrim" id="scrim"></div>
 
-<footer class="foot"><div class="wrap">© IDT — איתמר לשנסקי. כל הזכויות שמורות. אין להעתיק, להקליט או להפיץ את תכני המילון.<br>התכנים לימודיים בלבד ואינם מהווים ייעוץ השקעות. המסחר כרוך בסיכון.</div></footer>
+<footer class="foot"><div class="wrap">© IDT — איתמר לשנסקי. כל הזכויות שמורות. אין להעתיק, להקליט או להפיץ את תכני המילון.<br>תוכן לימודי בלבד, אינו מהווה ייעוץ השקעות או המלצה. המספרים בדוגמאות להמחשה בלבד. גרסת בטא: ההגדרות מתעדכנות.<br>המסחר כרוך בסיכון.</div></footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -314,10 +315,11 @@ a{color:inherit}
   if(!activeId())renderList();drawSide();
  }
  function waLink(msg){return'https://wa.me/972552616624?text='+encodeURIComponent(msg)}
+ function inAlso(c,tr){return(c.alsoIn||[]).some(function(a){return a.track===tr})}
  function activeId(){var m=(location.hash||'').match(/^#\/c\/(.+)$/);return m?decodeURIComponent(m[1]):''}
  function filtered(){
   var qs=String(S.q||'').split(/\s+/).map(norm).filter(Boolean),list=DATA.concepts.filter(function(c){
-   if(S.track&&c.track!==S.track)return false;
+   if(S.track&&c.track!==S.track&&!inAlso(c,S.track))return false;
    if(S.tier&&c.tier!==S.tier)return false;
    if(S.unseen&&seen[c.id])return false;
    return true;
@@ -357,7 +359,7 @@ a{color:inherit}
  function drawSide(scrollActive){
   var side=$('side'),st=side.scrollTop,act=activeId(),total=ORDER.length;
   $('tabs').innerHTML='<button class="chip'+(S.track===''?' on':'')+'" data-t="">הכול <small>'+total+'</small></button>'+DATA.tracks.map(function(t){
-   var n=DATA.concepts.filter(function(c){return c.track===t.id}).length;if(!n)return'';
+   var n=DATA.concepts.filter(function(c){return c.track===t.id||inAlso(c,t.id)}).length;if(!n)return'';
    return'<button class="chip'+(S.track===t.id?' on':'')+'" data-t="'+t.id+'">'+esc(t.name)+' <small>'+n+'</small></button>';
   }).join('');
   [].forEach.call($('segV').children,function(b){b.classList.toggle('on',b.dataset.v===S.view)});
@@ -427,6 +429,7 @@ a{color:inherit}
   var ex=(c.examples||[]).map(function(e){return'<div class="e"><b>'+esc(e.label)+'</b><div>'+(e.captions||[]).map(function(x){return'<span>'+esc(x)+'</span>'}).join('')+'</div></div>'}).join('');
   var use=(c.use||[]).length?'<div class="box"><h4>למה זה משמש</h4><ul class="def">'+c.use.map(function(l){return'<li>'+esc(l)+'</li>'}).join('')+'</ul></div>':'';
   var behind=(c.behind||[]).length?'<div class="box"><h4>מה עומד מאחורי זה</h4><ul class="def">'+c.behind.map(function(l){return'<li>'+esc(l)+'</li>'}).join('')+'</ul></div>':'';
+  var alsoIn=(c.alsoIn||[]).length?'<div class="box"><h4>מופיע גם ב</h4><div class="also">'+c.alsoIn.map(function(a){return'<span style="direction:rtl">'+esc(a.trackName||a.track)+(a.category?' · '+esc(a.category):'')+'</span>'}).join('')+'</div></div>':'';
   var also=(c.alsoKnownAs||[]).length?'<div class="box"><h4>ידוע גם בשם</h4><div class="also">'+c.alsoKnownAs.map(function(a){return'<span>'+esc(a)+'</span>'}).join('')+'</div></div>':'';
   var full=c.fullName&&c.abbr&&c.fullName!==c.abbr?esc(c.fullName)+' ('+esc(c.abbr)+')':esc(c.fullName||c.name);
   root.innerHTML='<div class="wrap cp">'+
@@ -434,8 +437,8 @@ a{color:inherit}
    '<div class="meta"><b>'+esc(c.lesson)+'</b><span>'+esc(tn)+'</span><span>·</span><span>'+esc(c.category||'')+'</span></div>'+
    '<h2>'+esc(c.hebrewName||c.name)+'</h2><div class="full">'+full+'</div>'+
    '<div class="cols"><div><div class="vid" id="vid"><div class="ph"><span class="logo"><i></i>DT</span><span class="spin"></span></div></div>'+
-   '<div class="ex">'+ex+'</div></div>'+
-   '<div class="side"><div class="box"><h4>הגדרה</h4><ul class="def">'+defs+'</ul></div>'+use+behind+also+'</div></div>'+
+   '<p class="note">הסרטונים כרגע ללא קריינות. קריינות בקרוב.</p><div class="ex">'+ex+'</div></div>'+
+   '<div class="side"><div class="box"><h4>הגדרה</h4><ul class="def">'+defs+'</ul></div>'+use+behind+also+alsoIn+'</div></div>'+
    '<div class="cfb">מצאת טעות במושג הזה? <a target="_blank" rel="noopener" href="'+waLink('שלום איתמר, מצאתי טעות במושג '+c.lesson+' '+(c.hebrewName||c.name)+': ')+'">כתוב לנו</a></div>'+
    '<div class="pn"><button class="btn o" id="pv"'+(prev?'':' disabled style="opacity:.3"')+'>→ '+(prev?esc(prev.hebrewName||prev.name):'')+'</button><button class="btn" id="nx"'+(next?'':' disabled style="opacity:.3"')+'>'+(next?esc(next.hebrewName||next.name):'')+' ←</button></div>'+
    '</div>';
