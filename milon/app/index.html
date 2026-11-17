@@ -58,6 +58,10 @@ a{color:inherit}
 .dict .lh{display:flex;align-items:center;gap:12px;margin:30px 0 6px;scroll-margin-top:80px}
 .dict .lh b{font-size:40px;font-weight:900;line-height:1;color:var(--ink);min-width:46px}
 .dict .lh i{flex:1;height:2px;background:var(--g);opacity:.5}
+.dict.en,.dict.en .strip{direction:ltr}
+.dict.en .ent{text-align:left}
+.dict.en .ent .en2{float:right}
+.dict.en .ent .ee{margin-inline-start:0;margin-inline-end:8px;direction:rtl}
 .dict .cols2{columns:1;column-gap:34px}
 @media(min-width:1100px){.dict .cols2{columns:2}}
 .ent{display:block;width:100%;text-align:right;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 4px;break-inside:avoid;transition:background .12s}
@@ -302,7 +306,7 @@ a{color:inherit}
   return'<button class="ent" data-id="'+esc(c.id)+'"><span class="en2">'+esc(c.lesson)+'</span><span class="et">'+esc(S.lang==='en'?(c.fullName||c.name):(c.hebrewName||c.name))+'</span>'+(seen[c.id]?'<span class="sn2">'+CHECK+'</span>':'')+
    '<span class="ee">'+esc(S.lang==='en'?(c.hebrewName||''):en)+esc(ab)+'</span><span class="ed">'+esc(firstDef(c))+'</span></button>';
  }
- function stripHtml(groups){return'<div class="strip">'+groups.map(function(g){return'<button data-l="'+esc(g.l)+'">'+esc(g.l)+'</button>'}).join('')+'</div>'}
+ function stripHtml(groups){return'<div class="strip"'+(S.lang==='en'?' style="direction:ltr"':'')+'>'+groups.map(function(g){return'<button data-l="'+esc(g.l)+'">'+esc(g.l)+'</button>'}).join('')+'</div>'}
  function jump(l,scope){var el=(scope||document).querySelector('[data-lh="'+l+'"]');if(el)el.scrollIntoView({block:'start',behavior:'smooth'})}
  function setView(v,lang){
   if(v)S.view=v;if(lang)S.lang=lang;
@@ -332,7 +336,8 @@ a{color:inherit}
    (seen[c.id]?'<span class="seen">'+CHECK+'</span>':'')+'</button>';
  }
  function rowHtml(c,act){
-  return'<button class="row'+(c.id===act?' on':'')+'" data-id="'+esc(c.id)+'"><span class="no">'+esc(c.lesson)+'</span><span class="nm">'+esc(c.hebrewName||c.name)+'<small>'+esc(enOf(c))+'</small></span>'+(seen[c.id]?'<span class="sn">'+CHECK+'</span>':'')+'</button>';
+  var en2=S.view==='az'&&S.lang==='en',p1=en2?(c.fullName||c.name):(c.hebrewName||c.name),p2=en2?(c.hebrewName||''):enOf(c);
+  return'<button class="row'+(c.id===act?' on':'')+'" data-id="'+esc(c.id)+'"><span class="no">'+esc(c.lesson)+'</span><span class="nm">'+esc(p1)+'<small>'+esc(p2)+'</small></span>'+(seen[c.id]?'<span class="sn">'+CHECK+'</span>':'')+'</button>';
  }
  function initSide(){
   $('side').innerHTML='<div class="sin"><div class="seg" id="segV"><button data-v="path">לימוד</button><button data-v="az">מילון א-ב</button></div><div class="seg sm" id="segL"><button data-g="he">עברית</button><button data-g="en">English</button></div><div class="search" style="margin-top:10px"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="חיפוש: FVG, תמ״ג, שבירת מבנה" autocomplete="off"></div>'+
@@ -393,7 +398,7 @@ a{color:inherit}
   h+='<div class="count">'+list.length+' מושגים</div>';
   if(S.view==='az'&&!S.q){
    var gs=azGroups(list);
-   h+='<div class="dict" id="dict">'+stripHtml(gs);
+   h+='<div class="dict'+(S.lang==='en'?' en':'')+'" id="dict">'+stripHtml(gs);
    gs.forEach(function(g){h+='<div class="lh" data-lh="'+esc(g.l)+'"><b>'+esc(g.l)+'</b><i></i></div><div class="cols2">'+g.items.map(entHtml).join('')+'</div>'});
    res.innerHTML=h+'</div>';
    var dc=$('dict');dc.querySelector('.strip').onclick=function(e){var b=e.target.closest('[data-l]');if(b)jump(b.dataset.l,dc)};
